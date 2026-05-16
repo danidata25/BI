@@ -190,28 +190,49 @@ Every field in the warehouse falls into one of three categories:
 
 ### fact_order_item _(high granularity — one row per order line)_
 
-| Field | Category | Notes |
+The most detailed fact table. Each row represents a single product sold within a single order — the atomic unit of the business. Use this table for any analysis that needs to drill down to individual transactions: product-level profitability, delivery performance per order, review scores, etc.
+
+| Field | Category | Definition |
 |---|---|---|
-| `sk_order` | 🟢 Source | Order ID |
-| `order_item_id` | 🟢 Source | Line number within the order |
-| `sk_date_purchase` | 🔵 Derived | FK to dim_date (YYYYMMDD integer) |
-| `sk_date_delivered` | 🔵 Derived | FK to dim_date, nullable |
-| `sk_date_estimated_delivery` | 🔵 Derived | FK to dim_date, nullable |
-| `sk_customer` | 🔵 Derived | FK resolved via customer_unique_id |
-| `sk_seller` | 🔵 Derived | FK to dim_seller |
-| `sk_product` | 🔵 Derived | FK to dim_product |
-| `price` | 🟢 Source | |
-| `freight_value` | 🟢 Source | |
-| `revenue` | 🔵 Derived | `price + freight_value` |
-| `gross_profit` | 🔵 Derived | `price − unit_cost` |
-| `unit_cost` | 🔵 Derived | Copied from dim_product at load time |
-| `delivery_days` | 🔵 Derived | `delivered_date − purchase_date` in days |
-| `is_on_time` | 🔵 Derived | 1 if delivered ≤ estimated, 0 otherwise |
-| `review_score` | 🟢 Source | Joined from order_reviews (1–5 scale) |
+| `sk_order` | 🟢 Source | Order ID from the source system |
+| `order_item_id` | 🟢 Source | Line number within the order (1, 2, 3… if the order has multiple products) |
+| `sk_date_purchase` | 🔵 Derived | FK → dim_date — the date the customer placed the order |
+| `sk_date_delivered` | 🔵 Derived | FK → dim_date — the date the package was actually delivered (nullable) |
+| `sk_date_estimated_delivery` | 🔵 Derived | FK → dim_date — the delivery date that was promised to the customer (nullable) |
+| `sk_customer` | 🔵 Derived | FK → dim_customer |
+| `sk_seller` | 🔵 Derived | FK → dim_seller |
+| `sk_product` | 🔵 Derived | FK → dim_product |
+| `price` | 🟢 Source | The amount the customer paid for the product itself (excluding shipping) |
+| `freight_value` | 🟢 Source | The shipping cost the customer paid for this item |
+| `revenue` | 🔵 Derived | `price + freight_value` — total money collected from the customer for this line |
+| `unit_cost` | 🔵 Derived | The estimated cost to the seller for this product (`price × 0.60`) |
+| `gross_profit` | 🔵 Derived | `price − unit_cost` — profit on the product before operating expenses |
+| `delivery_days` | 🔵 Derived | `delivered_date − purchase_date` in calendar days — how long shipping actually took |
+| `is_on_time` | 🔵 Derived | `1` if the package arrived on or before the estimated date, `0` if late, `NULL` if not yet delivered |
+| `review_score` | 🟢 Source | Customer satisfaction score for the order (1 = worst, 5 = best) |
 
 ### fact_daily_seller_category _(low granularity — daily aggregated summary)_
 
-One row per `(date, seller, product_category)`. All measures aggregated from `fact_order_item`. The `sk_product_category` column is a deterministic integer mapping assigned alphabetically at ETL time.
+This table answers a different class of questions than `fact_order_item`. Instead of looking at individual transactions, it rolls everything up to the level of **one seller × one product category × one day**. This makes it fast and convenient for trend analysis, seller performance dashboards, and category comparisons over time — without scanning millions of individual order rows.
+
+> **Example use:** "How much revenue did sellers in the Electronics category generate each day in Q4 2017, and what was their on-time delivery rate?"
+
+Every row is built by aggregating the matching rows from `fact_order_item`. The `sk_product_category` is an integer ID (assigned alphabetically) that maps to the category name in `dim_product`.
+
+| Field | Category | Definition |
+|---|---|---|
+| `sk_date` | 🔵 Derived | FK → dim_date — the purchase date of the aggregated orders |
+| `sk_seller` | 🔵 Derived | FK → dim_seller |
+| `sk_product_category` | 🔵 Derived | Integer ID for the product category (alphabetically assigned; join to dim_product to get the name) |
+| `orders_count` | 🔵 Derived | Number of distinct orders placed |
+| `items_count` | 🔵 Derived | Total number of individual items sold |
+| `revenue_total` | 🔵 Derived | Sum of `revenue` across all matching order lines |
+| `freight_total` | 🔵 Derived | Sum of `freight_value` — total shipping collected |
+| `gross_profit_total` | 🔵 Derived | Sum of `gross_profit` — total product profit for the day |
+| `on_time_deliveries` | 🔵 Derived | Count of items where `is_on_time = 1` |
+| `delivered_items` | 🔵 Derived | Count of items that have a recorded delivery date |
+| `review_score_sum` | 🔵 Derived | Sum of all review scores (divide by `reviews_count` to get the average) |
+| `reviews_count` | 🔵 Derived | Number of items that received a review |
 
 ---
 
