@@ -104,16 +104,24 @@ def price_band(price) -> str:
 
 
 def nan_to_none(val):
-    """Convert numpy/pandas NaN/NaT to Python None for psycopg2."""
+    """Convert numpy/pandas NaN/NaT to Python None, and numpy scalars to
+    Python native types so psycopg2 can serialize them correctly."""
     if val is None:
-        return None
-    if isinstance(val, float) and np.isnan(val):
         return None
     try:
         if pd.isna(val):
             return None
     except (TypeError, ValueError):
         pass
+    # Numpy integer → Python int
+    if isinstance(val, np.integer):
+        return int(val)
+    # Numpy float → Python float
+    if isinstance(val, np.floating):
+        return float(val)
+    # Numpy bool → Python bool
+    if isinstance(val, np.bool_):
+        return bool(val)
     return val
 
 
@@ -312,7 +320,7 @@ def build_dim_seller(sellers: pd.DataFrame, items: pd.DataFrame,
     # Main category per seller = most frequent category sold
     main_cat = (
         items_cat.groupby("seller_id")["product_category_en"]
-        .agg(lambda x: x.mode().iloc[0] if len(x) > 0 else "Unknown")
+        .agg(lambda x: x.mode().iloc[0] if len(x.mode()) > 0 else "Unknown")
         .reset_index()
         .rename(columns={"product_category_en": "seller_main_category"})
     )
@@ -700,8 +708,9 @@ def main():
                 prod_rows)
     conn.commit()
 
-    cur.execute(f"SELECT sk_product, product_id, unit_cost FROM {DB_SCHEMA}.dim_product")
-    dim_prod_sk = pd.DataFrame(cur.fetchall(), columns=["sk_product", "product_id", "unit_cost"])
+    cur.execute(f"SELECT sk_product, product_id, unit_cost, product_category FROM {DB_SCHEMA}.dim_product")
+    dim_prod_sk = pd.DataFrame(cur.fetchall(), columns=["sk_product", "product_id", "unit_cost", "product_category"])
+    dim_prod_sk["unit_cost"] = dim_prod_sk["unit_cost"].astype(float)
 
     # ── fact_order_item ───────────────────────────────────────────────
     print("\n[5/6] Building fact_order_item...")
