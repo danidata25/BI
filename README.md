@@ -9,6 +9,18 @@ A full data warehouse and BI project built on the [Olist Brazilian E-Commerce da
 
 ---
 
+## TODO / Project Status
+
+- [x] Star schema DW design + ETL pipeline
+- [x] PostgreSQL schema populated (112,650 fact rows)
+- [x] Report A — Seller Performance (Power BI, 5 visuals + slicer)
+- [ ] Add report screenshots to `assets/` folder and link them in the Report A section below *(screenshots ready, just need saving to repo)*
+- [ ] Report B — Market & Customer Trends *(logic to be finalized)*
+- [ ] Dashboard *(logic to be finalized)*
+- [ ] OLAP Tool *(logic to be finalized)*
+
+---
+
 ## The Raw Data
 
 Seven CSV files from Kaggle form the foundation of this project:
@@ -303,3 +315,73 @@ Takes about 1–2 minutes. Prints a row count per table when done.
 ---
 
 > CSV files, `.env`, and generated documents are excluded via `.gitignore`.
+
+---
+
+## Report A — Seller Performance
+
+The question this report tries to answer: which sellers are pulling their weight, and which ones are a liability? Built for Olist's seller operations team, it covers revenue distribution, service quality by region, individual seller behavior, category breakdowns, and growth over time.
+
+There's one slicer on Page 1 — a Year filter (2016 / 2017 / 2018) — that updates all visuals on that page simultaneously.
+
+The report is split across two pages:
+- **Page 1** — snapshot view (tiers, regions, scatter, category matrix)
+- **Page 2** — trend view (monthly revenue over time + service quality by region)
+
+---
+
+### Visual 1 — Revenue & Gross Profit by Seller Tier
+
+![Revenue & Gross Profit by Seller Tier](assets/report_a_v1_tier_revenue.png)
+
+Sellers are split into three revenue brackets: Bronze (<5K BRL total), Silver (5K–50K), Gold (50K+). The chart shows total revenue and gross profit side by side per tier.
+
+Silver is the biggest revenue driver at 8.1M BRL — more than Gold (4.6M). Not because individual Silver sellers are larger, but because there are far more of them. The platform's volume runs on Silver, not on the handful of Gold sellers at the top.
+
+> Gross profit uses a simulated cost model (`price × 0.60`) — treat these as directional estimates, not accounting figures.
+
+---
+
+### Visual 2 — Service Quality by Seller Region
+
+![Service Quality by Seller Region](assets/report_a_v2_region_quality.png)
+
+Two metrics on one chart: bars show average review score (left axis), the line tracks on-time fulfillment rate (right axis). On-time fulfillment rate = orders delivered on time ÷ **all** orders placed, including ones that were never delivered.
+
+The North region is consistently at the bottom on both metrics — ~3.8 stars and ~80% on-time vs Center-West's ~4.1 stars and ~95%. Both metrics pointing the same direction for the same region is a logistics signal, not a product quality issue. Brazil's North is geographically remote and delivery distances are longer.
+
+---
+
+### Visual 3 — Review Score vs Revenue per Seller
+
+![Review Score vs Revenue per Seller](assets/report_a_v3_scatter.png)
+
+Each dot is one seller. X = their average review score, Y = their total revenue. Color = tier.
+
+The Y-axis is logarithmic — seller revenues range from a few hundred BRL to over a million, so a regular scale would squash Bronze sellers into an invisible line at the bottom. Log scale keeps all three tiers readable without changing the actual values (1,000K = 1M).
+
+Gold sellers mostly cluster top-right, which is fine. The ones worth flagging are the Gold sellers sitting around score 3 — strong revenue, mediocre satisfaction. They're bringing in money while quietly damaging Olist's ratings on Mercado Livre and other partner platforms. Bronze sellers are all over the place — some have great scores but haven't scaled yet. Those are the growth candidates.
+
+---
+
+### Visual 4 — Category Performance Overview
+
+![Category Performance Overview](assets/report_a_v4_category_matrix.png)
+
+A scorecard across 11 product category groups. Four columns: gross profit margin, total revenue, average review score, on-time fulfillment rate.
+
+A few things stand out:
+- **Home & Garden** has the most revenue (4.66M BRL) but the lowest review score (3.95) — being the biggest category doesn't mean the best experience
+- **Books & Media** has the highest review score (4.29) and the lowest revenue — niche but happy
+- **Fashion** leads on on-time rate (91.8%) and has solid reviews — the most operationally clean category
+- Gross profit margins look nearly identical across categories (~33–35%) — this is expected given the simulated cost model, not real differentiation
+
+---
+
+### Visual 5 — Monthly Revenue Trend by Seller Tier
+
+![Monthly Revenue Trend by Seller Tier](assets/report_a_v5_trend.png)
+
+Monthly revenue from Oct 2016 to Oct 2018, split by tier. All three lines grow steadily throughout the period, with Silver consistently on top. There's a visible bump around November 2017 — Black Friday.
+
+The drop at the very end is a data artifact. The dataset ends mid-period in late 2018, so the last one or two months have fewer orders than a complete month would. It's not a real trend reversal.
