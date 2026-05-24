@@ -499,7 +499,7 @@ def build_fact_order_item(
     rows = []
     for _, r in fact_clean.iterrows():
         rows.append(row_to_none((
-            r["order_id"],          # sk_order (VARCHAR)
+            r["order_id"],          # order_id (VARCHAR, natural business key)
             int(r["order_item_id"]),
             int(r["sk_date_purchase"]),
             nan_to_none(r.get("sk_date_delivered")),
@@ -538,7 +538,7 @@ def build_fact_daily_seller_category(
         return [], {}
 
     cols = [
-        "sk_order", "order_item_id", "sk_date_purchase", "sk_date_delivered",
+        "order_id", "order_item_id", "sk_date_purchase", "sk_date_delivered",
         "sk_date_estimated_delivery",
         "sk_customer", "sk_seller", "sk_product",
         "price", "freight_value", "revenue", "gross_profit", "unit_cost",
@@ -560,7 +560,7 @@ def build_fact_daily_seller_category(
     grp = df.groupby(["sk_date_purchase", "sk_seller", "sk_product_category"])
 
     agg = grp.agg(
-        orders_count=("sk_order", pd.Series.nunique),
+        orders_count=("order_id", pd.Series.nunique),
         items_count=("order_item_id", "count"),
         revenue_total=("revenue", "sum"),
         freight_total=("freight_value", "sum"),
@@ -719,7 +719,7 @@ def main():
         dim_cust_sk, dim_sell_sk, dim_prod_sk,
     )
     bulk_insert(cur, "fact_order_item",
-                ["sk_order", "order_item_id", "sk_date_purchase", "sk_date_delivered",
+                ["order_id", "order_item_id", "sk_date_purchase", "sk_date_delivered",
                  "sk_date_estimated_delivery",
                  "sk_customer", "sk_seller", "sk_product",
                  "price", "freight_value", "revenue", "gross_profit", "unit_cost",

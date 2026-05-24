@@ -1,0 +1,3148 @@
+
+======================================================================
+SLIDE 1
+======================================================================
+[Layout: 2_Title Slide]
+
+  [Shape: Title 1]
+  BI&A Applications, Part A:Business Analytics
+
+  [Shape: Subtitle 2]
+  Business Intelligence and Analytics / Session 3
+
+======================================================================
+SLIDE 2
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  BI&A Applications: From Data to Information
+
+  [Shape: Rounded Rectangle 36]
+
+  [Shape: AutoShape 4]
+
+  [Shape: AutoShape 7]
+  Processing
+
+  [Shape: AutoShape 7]
+  Storage
+
+  [Shape: AutoShape 7]
+  Acquisition
+
+  [Shape: AutoShape 7]
+  Presentation
+
+  [Shape: AutoShape 7]
+  Interpretation
+
+  [Shape: AutoShape 10]
+
+  [Shape: Text Box 11]
+  Data Layer:
+  Back-end infrastructure
+  Technological/Computational focus
+
+  [Shape: AutoShape 14]
+
+  [Shape: Text Box 11]
+  Information Layer:
+  Front-end tools
+  Managerial/Analytical focus: What information do end-users require?
+
+  [Shape: Right Arrow 26]
+
+  [Shape: TextBox 40]
+  BI&A Applications:
+  Turning “Raw data materials” into “Information products”
+
+  [Shape: TextBox 44]
+  Salesforce CRM Analytics ( Link )
+
+======================================================================
+SLIDE 3
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 2]
+  Front-End Applications: From Operational to Analytical
+
+  [Shape: Slide Number Placeholder 5]
+  3
+
+  [Shape: Up Arrow 2]
+
+  [Shape: TextBox 8]
+  1950’s
+
+  [Shape: TextBox 9]
+  1990’s
+
+  [Shape: Rounded Rectangular Callout 24]
+  Transactions Processing
+  Enterprise Resource Planning (ERP)
+
+  [Shape: Rounded Rectangular Callout 25]
+  Decision Support Systems (DSS)
+  Business Intelligence and Analytics (BI&A)
+
+  [Shape: TextBox 14]
+  2020’s
+
+  [Shape: Up Arrow 28]
+  Data
+  Analysis
+  Performance
+  Measurement
+  Decision
+  Support
+
+======================================================================
+SLIDE 4
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Operational Front-End Applications: Mostly Textual
+
+  [Shape: Rectangle 3]
+  Operational Reports
+  Monitoring business activities
+  Detailed record lists
+
+  [Shape: Rectangle 3]
+  Data Editors
+  Data manipulation: Records, attributes and associated values
+  Guided acquisition: Directing correct data entry, validating integrity
+
+  [Shape: Rectangle 5]
+  Mostly, based on detailed textual presentation
+
+  [Shape: AutoShape 8]
+
+  [Shape: Rectangle 10]
+  Detailed text fits operational use:
+  Access to detailed data
+  Some data “make sense” only as detailed text (Name, Phone, Address, Description, …)
+  However, a misfit for analytical use:
+  Typical usage mandates viewing large data volumes, in aggregation
+  Cognitive capacity limitations
+  “Can’t see the forest for the trees”
+
+======================================================================
+SLIDE 5
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Business Analytics ("אנליטיקה עסקית")
+
+  [Shape: Rounded Rectangle 32]
+  End-Users
+  (“Information Consumers”)
+
+  [Shape: Rounded Rectangle 36]
+  Data Infrastructure
+  (“Raw Materials”)
+
+  [Shape: AutoShape 4]
+
+  [Shape: Left Arrow 39]
+  Usage
+
+  [Shape: Rounded Rectangle 36]
+  BI&A Applications
+  (“Information Products”)
+
+  [Shape: AutoShape 8]
+
+======================================================================
+SLIDE 6
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Analytics Evolution
+
+  [Shape: Content Placeholder 9]
+  Descriptive Analytics
+  (“אנליטיקה תיאורית”):
+  “What happened?”
+  Reflecting past behaviors and trends
+  Understanding current state
+
+  [Shape: Content Placeholder 11]
+  Predictive Analytics
+  ("אנליטיקה תחזיתית"):
+  “What will happen?”
+
+  [Shape: Content Placeholder 11]
+  Prescriptive Analytics
+  (“אנליטיקה מנחה”):
+  “How to make it happen?”
+
+  [Shape: Right Arrow 2]
+
+  [Shape: Rectangle 5]
+  Reactive BI&A ("מגיב") - “Looking Backwards”:
+  “Traditional” Analytics
+  Understanding the past, detecting factors that explaining today’s behaviors
+
+  [Shape: Rectangle 6]
+  Proactive BI&A ("יוזם") - “Looking Forward”:
+  “Contemporary” Analytics
+  Predicting future behaviors and trends, making best-action recommendations
+
+  [Shape: Content Placeholder 9]
+  Diagnostic Analytics
+  (“אנליטיקה מאבחנת”):
+  “Why did it happen?”
+
+  [Shape: Rectangle: Rounded Corners 15]
+
+  [Shape: AutoShape 8]
+
+  [Shape: Rectangle 17]
+  Later…
+
+======================================================================
+SLIDE 7
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Inquiry and Data Retrieval
+
+  [Shape: Rectangle 3]
+  Inquiry: The act of requesting information
+  Data retrieval: Extracting data from a certain source (e.g., a “Star” structure) to fulfill inquiry needs
+  Query (“שאילתה”): “You ask - the data answers…”, A formal definition of data retrieval request
+    SQL/SELECT: A scripting language for querying relational databases
+  Query outcome, in BI&A settings: A “flat” relational dataset
+
+  [Shape: Rounded Rectangular Callout 10]
+  Dimension Variables
+  Independent, Input, Explanatory
+
+  [Shape: Rounded Rectangular Callout 11]
+  Fact Variables
+  Dependent, Output, Response
+
+  [Shape: Rectangle 4]
+  FACT
+
+  [Shape: Rectangle 7]
+  DIM
+
+  [Shape: Line 14]
+
+  [Shape: Line 15]
+
+  [Shape: Line 16]
+
+  [Shape: Rectangle 7]
+  DIM
+
+  [Shape: Rectangle 7]
+  DIM
+
+  [Shape: Rectangle 7]
+  DIM
+
+  [Shape: Line 16]
+
+  [Shape: Right Arrow 9]
+  Query
+
+  [Shape: Left Brace 16]
+
+  [Shape: Left Brace 17]
+
+  [Shape: Right Arrow 9]
+
+  [Shape: Left Brace 30]
+
+  [Shape: Rectangle 3]
+  Analytics:
+  Turning data into “Building blocks” for analytical inquiry
+
+======================================================================
+SLIDE 8
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Reminder: Scales of Measure, Variables Classification
+
+  [Shape: Content Placeholder 2]
+  Nominal Scale (“שמי”):
+  Discrete value, reflecting categories or groups
+  Order, Gaps, Ratios: No quantitative meaning
+  Examples: Region, Class, Faculty, …
+
+  [Shape: Content Placeholder 2]
+  Ordinal Scale (“סדר”):
+  Discrete values, with meaningful Order
+  Gaps, Ratios: No quantitative meaning
+  Examples: Level, Rank, Stage, …
+
+  [Shape: Content Placeholder 2]
+  Interval Scale (“רווח”):
+  Meaningful Order and Gaps between values
+  Ratios: No quantitative meaning
+  Examples: Date, Grade, Temperature, …
+
+  [Shape: Content Placeholder 2]
+  Ratio Scale (“יחס”):
+  Meaningful Order, Gaps and Ratios between values
+  A “Zero point” with clear business interpretation
+  Examples: Units, Amount, Area, …
+
+  [Shape: Rectangle 9]
+  Dimension Variables
+  Reflect factors that may affect performance, on which the organization may wish to act
+  Customers, Products, Locations, …
+
+  [Shape: AutoShape 8]
+
+  [Shape: Rectangle 11]
+  Fact Variables
+  Reflect desired performance and value goals, the target for optimization
+  Outcomes, Revenues, Satisfaction, …
+
+  [Shape: AutoShape 8]
+
+  [Shape: TextBox 14]
+  Non additive
+
+  [Shape: TextBox 15]
+  Additive
+
+======================================================================
+SLIDE 9
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Analytical Inquiry Categories
+
+  [Shape: Content Placeholder 7]
+  In terms of the nature of inquiry – What are the key differences between the following queries?
+
+  [Shape: Rectangle: Rounded Corners 2]
+  Per Year, What are the AVG and STDEV of daily Orders ?
+
+  [Shape: Rectangle: Rounded Corners 3]
+  Compared by Theaters, does Revenue increase with greater Discount?
+
+  [Shape: Rectangle: Rounded Corners 4]
+  Which States have the greatest Ticket Sales proportion?
+
+  [Shape: Rectangle: Rounded Corners 5]
+  Which Movies  got the best Review Scores?
+
+  [Shape: Content Placeholder 7]
+  State
+  (“מצב”):
+  A performance “snapshot”
+  Fact variable(s)
+
+  [Shape: Rectangle: Rounded Corners 8]
+  What is this year’s AVG Occupancy
+
+  [Shape: Content Placeholder 7]
+  Distribution
+  (“התפלגות”):
+  Relative frequency, values distribution
+  Dimension variable(s)
+  Fact variable(s)
+
+  [Shape: Content Placeholder 7]
+  Composition
+  (“הרכב”):
+  Relative contribution to the whole
+  Dimension variable(s)
+  Fact variable(s)
+
+  [Shape: Content Placeholder 7]
+  Comparison
+  (“השוואה”):
+  Comparing item’s performance
+  Dimension variable(s)
+  Fact variable(s)
+
+  [Shape: Content Placeholder 7]
+  Relationship
+  (“יחס”):
+  Detecting mutual effects and/or associations
+  Dimension variable(s)
+  Fact variables (two or more)
+
+  [Shape: Rectangle 13]
+  Given the nature of inquiry, what information should be presented and how?
+  Which presentation forms meet each inquiry need?
+
+  [Shape: AutoShape 8]
+
+======================================================================
+SLIDE 10
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Analytics Presentation Forms
+
+  [Shape: Content Placeholder 7]
+  Textual Presentation:
+  Aggregations
+  Performance values
+  Various granularity levels
+  “Show me
+  the numbers”
+
+  [Shape: Content Placeholder 7]
+  Visual Presentation:
+  Business charts
+  Reflecting large data volumes
+  Highlighting behavior patterns
+  “A picture is worth
+  a thousand words”
+
+  [Shape: Content Placeholder 7]
+  Statistics:
+  Statistical models
+  In-depth analysis
+  Hypotheses testing, validation
+  “From information
+  to decisions”
+
+  [Shape: Rectangle 8]
+  Exploratory Analysis (“ניתוח מגשש”):
+  Gain better understanding of past behaviors and current state
+  Descriptive Analytics
+
+  [Shape: AutoShape 8]
+
+  [Shape: AutoShape 8]
+
+  [Shape: Rectangle 11]
+  Confirmatory Analysis (“ניתוח מאשש”):
+  Assessing assumptions and predictability
+  Diagnostic Analytics - Later…
+
+======================================================================
+SLIDE 11
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  State (“מצב”) Analytics
+
+  [Shape: TextBox 1]
+  Textual Presentation:
+  Numeric Value
+  Color coding: “Good”, “Medium”, or “Bad”
+
+  [Shape: TextBox 2]
+  Visual Presentation:
+  Gauge (“מחוון”)
+
+  [Shape: Rectangle 3]
+  State: “Snapshot” - quantitative metric value at a certain point of time
+  Fact variable, presented in aggregation
+  Common use – presenting performance KPI
+
+  [Shape: TextBox 4]
+  Occupancy:
+  35%
+
+  [Shape: TextBox 5]
+  Success Rate:
+  95.2%
+
+  [Shape: TextBox 6]
+  Statistics:
+  Is the value within a reasonable range?
+  Gap vs. performance targets
+  Confidence Interval ("רווח סמך")
+  (Later…)
+
+  [Shape: TextBox 12]
+  Orders Fulfillment:
+  75%
+
+======================================================================
+SLIDE 12
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  State Visualization: Gauge ("מחוון")
+
+  [Shape: Content Placeholder 7]
+  Gauge: Reflecting fact-variable state vs. target
+  Indicate actual level vs. performance ranges
+  Many shapes and forms…
+
+  [Shape: Content Placeholder 7]
+  Dashboards: A common BI&A tool, using Gauges to reflect KPI’s states (further discussed later)
+
+======================================================================
+SLIDE 13
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  State Visualization: Score Card (“גיליון הישגים/ציונים”)
+
+  [Shape: Content Placeholder 7]
+  Score-Card: Comparative textual representation of fact-variable states
+  Organized in a logical manner – e.g., along “Balanced Score Card” (BSC) perspectives
+  Goal-driven presentation: Emphasis on objectives, Current vs. Target
+
+======================================================================
+SLIDE 14
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  State Visualization: KPI’s Comparison
+
+  [Shape: Content Placeholder 7]
+  Radar/Spider-Web (ראדאר/עכביש) Chart :
+  KPI’s “Profiling”
+  Each axis: Reflects a certain performance criterion
+  Position on axis: The associated performance value
+  Each connecting pattern: Reflects a dimension variable instance (e.g., employee profiles)
+
+  [Shape: Content Placeholder 7]
+  Funnel (“משפך”) Chart: Ordered sequence of fact-variable states
+  Often, reflecting stages of a business process
+
+======================================================================
+SLIDE 15
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  State Presentation: Potential Bias
+
+  [Shape: TextBox 2]
+  State presentation reflects aggregated values, based of a large population sample
+  However, an aggregated value is far from providing a full picture!
+
+  [Shape: TextBox 3]
+  Capacity:
+  Small or large sample?
+
+  [Shape: TextBox 4]
+  The presentation of State only (“single value”) is often insufficient and biased!
+  Might turn out to be misleading without further understanding value distribution and trends
+
+  [Shape: TextBox 5]
+  Complexity:
+  Homogenous or heterogeneous population?
+
+  [Shape: TextBox 6]
+  Volatility:
+  Stable or turbulent trend?
+
+======================================================================
+SLIDE 16
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Distribution   ("התפלגות")Analytics
+
+  [Shape: Rectangle 1]
+  Distribution: Mapping fact variable values to measures of probability
+  Discrete value domain: A finite set of values (e.g., Grade: 0, 1, 2, …, 100)
+  Continuous value domain: A range of values, often grouped into “Bins” (e.g., Age: 0-10, 10-20, 20-30, …)
+
+  [Shape: TextBox 2]
+  Textual Presentation:
+  Frequency Table
+  Descriptive Analytics
+
+  [Shape: TextBox 3]
+  Visual Presentation:
+  Histogram
+
+  [Shape: TextBox 4]
+  Statistics:
+  Assessing distribution properties
+  “Goodness of fit”: E.g., Kolmogorov-Smirnov (K-S) test
+  Comparison of distributions: E.g., Analysis of Variance (ANOVA)
+  (Later…)
+
+======================================================================
+SLIDE 17
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Frequency Table ("טבלת תדירויות/שכיחויות")
+
+  [Shape: Content Placeholder 2]
+  Frequency Table: Textual presentation of distribution
+  Values: Reflect the events represented by the variables
+    Discrete value domain: Reflecting actual values, possibly with added value ranges (e.g., “X or more”)
+    Range/Continuous value domain: Divided into “bins” (mostly, but no necessarily, equally-sized)
+  Absolute frequency: Number of sample (COUNT)
+  Relative frequency: Percentage of total (COUNT / ∑ COUNT), values sum-up to 1
+  Cumulative frequency: Cumulative sum of relative frequencies
+
+  [TABLE in shape: Table 5]
+    Row 1: Children | Absolute Frequency | Relative Frequency | Cumulative Frequency
+    Row 2: 0 | 40 | 0.04 | 0.04
+    Row 3: 1 | 120 | 0.12 | 0.16
+    Row 4: 2 | 240 | 0.24 | 0.40
+    Row 5: 3 | 400 | 0.40 | 0.80
+    Row 6: 4 or more | 200 | 0.20 | 1.00
+    Row 7: Total | 1000 | 1.00 (100%) | 1.00  (100%)
+
+  [Shape: TextBox 3]
+  Example: Frequency Table for a discrete variable
+
+  [TABLE in shape: Table 5]
+    Row 1: Age Group | Absolute Frequency | Relative Frequency | Cumulative Frequency
+    Row 2: 0-20 | 20 | 0.02 | 0.02
+    Row 3: 21-40 | 420 | 0.42 | 0.44
+    Row 4: 41-60 | 280 | 0.28 | 0.72
+    Row 5: 61-80 | 200 | 0.20 | 0.92
+    Row 6: 81 or more | 80 | 0.08 | 1.00
+    Row 7: Total | 1000 | 1.00 (100%) | 1.00  (100%)
+
+  [Shape: TextBox 5]
+  Example: “Binned” frequency table
+
+======================================================================
+SLIDE 18
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Distribution Visualization: Histogram ("היסטוגרמה") Chart
+
+  [Shape: Content Placeholder 2]
+  Histogram Chart: A common distribution visualization form
+  Visual reflection of the Frequency Table
+  Estimates the Probability Density Function (PDF)
+  X Axis: Reflects the value domain of a Fact variable
+  Scale of measure: Interval or Ratio
+  Continuous variables: Commonly divided into equally-sized “bins”
+  Y Axis: The extent of frequency
+  Absolute frequency: Number of samples (COUNT)
+  Relative frequency: Percentage of total (COUNT / ∑ COUNT), values sum-up to 1
+  Helps understanding distribution characteristics
+  Mean: Where is the “Center of Gravity”?
+  Extent of variability and symmetry: Broad or narrow distribution? Symmetrical (“Normal”) or Asymmetrical (“Long Tail”)?
+
+  [Shape: TextBox 4]
+  Absolute Frequency
+
+  [Shape: TextBox 13]
+  Relative Frequency
+
+======================================================================
+SLIDE 19
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Distribution Visualization: Other Forms
+
+  [Shape: Content Placeholder 7]
+  Surface (“משטח”) Chart:
+  Visualization of 2-variable distribution
+  X Axis, Y Axis: Fact variables
+  Z Axis: Absolute or relative frequency
+
+  [Shape: Content Placeholder 7]
+  Cumulative Histogram ("היסטוגרמה מצטברת") Chart:
+  Estimates the Cumulative
+  Distribution Function (CDF)
+
+======================================================================
+SLIDE 20
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Descriptive Statistics (“סטטיסטיקה תיאורית”)) Link )
+
+  [Shape: Content Placeholder 2]
+  Descriptive Statistics: Metrics that describe distribution properties, essential for exploratory data analysis
+  Mostly: Apply aggregation functions, based on a sample of values,
+
+  [Shape: TextBox 9]
+  Example: Descriptive Statistics with EXCEL
+
+  [Shape: TextBox 11]
+  Example: Histogram with Descriptive Statistics
+
+======================================================================
+SLIDE 21
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Descriptive Statistics: Input to Decision Making
+
+  [Shape: Content Placeholder 2]
+  Histogram and descriptive statistics: Help understanding population behaviors and characteristics
+
+  [Shape: TextBox 2]
+  Center Metrics (מדדי מרכז):
+  Assessing “Center of Gravity”
+  Detecting common behaviors
+  Directing most efforts
+
+  [Shape: TextBox 17]
+  Spread Metrics (מדדי פיזור):
+  Assessing variability
+  Greater spread  Greater heterogeneity, uncertainty and risk
+
+  [Shape: TextBox 8]
+  Position Metrics (מדדי מיקום):
+  Assessing items vs. distribution
+  Leading / Lagging vs. the entire population
+
+  [Shape: Arrow: Up 9]
+
+  [Shape: Arrow: Right 16]
+
+  [Shape: Arrow: Right 19]
+
+  [Shape: Arrow: Up 20]
+
+======================================================================
+SLIDE 22
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Descriptive Statistics: Foundation and Center Metrics
+
+  [Shape: TextBox 4]
+  Mode (“שכיח”):
+  Most common value
+  Discrete-value distributions
+
+  [Shape: TextBox 11]
+  Foundation Metrics
+  (מדדי יסוד/בסיס)
+
+  [Shape: TextBox 15]
+  Median (“חציון”):
+  50% Above / Below
+  Biased estimator
+  Less sensitive to extremes
+  Asymmetrical distributions
+
+  [Shape: TextBox 55]
+  Sum
+  ("סכום")
+
+  [Shape: TextBox 56]
+  Count
+  (“ספירה”)
+
+  [Shape: Left Brace 57]
+
+  [Shape: TextBox 58]
+  Mean, Average
+  (“תוחלת, ממוצע”):
+  Sum/Count, Weighted
+  Unbiased estimator
+  Sensitive to extremes
+  Symmetrical/Normal distributions
+
+======================================================================
+SLIDE 23
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Descriptive Statistics: Spread Metrics
+
+  [Shape: TextBox 58]
+  Range (“טווח“)
+  Maximum – Minimum
+
+  [Shape: TextBox 20]
+  Deviation ("סטייה")
+  Maximum gap vs. average
+
+  [Shape: TextBox 51]
+  Variance ("שונות"):
+  Average Squared Deviation (σ2)
+  Standard Deviation ("סטיית תקן")
+  Squared root of variance (σ)
+  Standard Error ("טעות תקן")
+  STDEV  of sample (σ / √ n )
+
+======================================================================
+SLIDE 24
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Descriptive Statistics: Position Metrics
+
+  [Shape: TextBox 58]
+  Min/Max
+  (“מינימום/מקסימום“)
+  Lowest / Highest value
+
+  [Shape: TextBox 20]
+  Rank ("מדרג")
+  Position vs. other values
+
+  [Shape: TextBox 51]
+  Standard Value ("ציון תקן"):
+  Normalized Deviation ((X-μ) / σ)
+
+  [Shape: TextBox 19]
+  Percentile ("אחוזון")
+  % of sample smaller than X
+
+======================================================================
+SLIDE 25
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Summary :Descriptive Statistics and Scale of Measure
+
+  [Shape: TextBox 1]
+  Center Metrics
+
+  [Shape: TextBox 2]
+  Position Metrics
+
+  [TABLE in shape: Table 7]
+    Row 1: Metric | Definition | Nominal | Ordinal | Interval | Ratio
+    Row 2: Mean, Average (“ממוצע”) | SUM / COUNT: (∑Xn) / N |  |  | V | V
+    Row 3: Weighted Average  (“ממוצע משוקלל”) | (∑Wn * Xn) / (∑Wn) |  |  | V | V
+    Row 4: Median (“חציון”) | 50% above, 50% below |  | V | V | V
+    Row 5: Mode (“שכיח”) | The mode common value | V | V | V | V
+
+  [TABLE in shape: Table 7]
+    Row 1: Metric | Definition | Nominal | Ordinal | Interval | Ratio
+    Row 2: Min/Max (“מינימום/מקסימום”) | The lowest/Highest value |  | V | V | V
+    Row 3: Rank (“מדרג”) | Position vs. other values |  | V | V | V
+    Row 4: Percentile (“אחוזון) | Percentage of sample smaller than X |  | V | V | V
+    Row 5: Standard Value (“ציון תקן”) | Normalized value: (X - μ) / σ |  |  | V | V
+
+  [Shape: TextBox 5]
+  Foundation Metrics
+
+  [TABLE in shape: Table 7]
+    Row 1: Metric | Definition | Nominal | Ordinal | Interval | Ratio
+    Row 2: Count (“ספירה”) | No. of instances (N) | V | V | V | V
+    Row 3: Sum (“סכום”) | Sum of values (∑Xn) |  |  | V (base for average) | V
+
+  [TABLE in shape: Table 7]
+    Row 1: Metric | Definition | Nominal | Ordinal | Interval | Ratio
+    Row 2: Range ("טווח") | Max - Min |  | V | V | V
+    Row 3: Deviation (“סטייה”) | Maximum gap vs. the average |  |  | V | V
+    Row 4: Absolute Deviation (“סטייה מוחלטת”) | Maximum absolute gap |  |  | V | V
+    Row 5: Variance ("שונות") | Average squared deviation (σ2) |  |  | V | V
+    Row 6: Standard Deviation (STDEV, “סטיית תקן”) | Squared-root of variance (σ) |  |  | V | V
+    Row 7: Standard Error (“טעות תקן”) | Standard deviation of sample (σ / √ n) |  |  | V | V
+    Row 8: Skewness (“צידוד”) | Symmetry around center |  |  | V | V
+    Row 9: Kurtosis (“גבנויות”) | Concentration around center |  |  | V | V
+
+  [Shape: TextBox 10]
+  Spread Metrics
+
+======================================================================
+SLIDE 26
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Distributions Comparison: Box ("קופסא") Chart
+
+  [Shape: Content Placeholder 2]
+  Does a certain variable distribute differently in each sub-population?
+  Difficult to assess from textual presentation
+
+  [Shape: TextBox 2]
+  Example: Does Income distribute differently in each Region?
+
+  [Shape: TextBox 3]
+  What can we learn from Income distribution characteristics in each Region?
+  Mean vs. Median
+  Dispersity of each distribution
+  Upper/Lower bounds and outliers
+
+  [Shape: Content Placeholder 2]
+  Box Chart :
+  Visual comparison between distributions
+  Y Axis: Fact variable, ratio-scale
+  X Axis: Dimension variable for comparison, nominal/ordinal/interval scale
+
+  [TABLE in shape: Table 6]
+    Row 1: Region | Sample | Mean | STDEV | Min | Lower Quartile | Median | Upper Quartile | Max
+    Row 2: East | 100 | 16 | 2 | 2 | 14 | 17 | 20 | 23
+    Row 3: Center | 300 | 11 | 1 | 7 | 9 | 11 | 13 | 15
+    Row 4: West | 200 | 12 | 5 | 3 | 6 | 9 | 19 | 28
+
+======================================================================
+SLIDE 27
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Composition ("הרכב") Analytics
+
+  [Shape: Rectangle 1]
+  Composition: Reflects the Relative contribution of items within a whole
+  The fact variable (ratio scale) must be fully-additive with respect to dimension variable
+  The contributions must sum up to 1 (100%).
+
+  [Shape: TextBox 2]
+  Textual Presentation:
+  Composition Table
+
+  [Shape: TextBox 3]
+  Visual Presentation:
+  Pie Chart
+
+  [Shape: TextBox 4]
+  Statistics:
+  Assessing difference between compositions
+  E.g., Chi-Squared Test
+  (Later…)
+
+======================================================================
+SLIDE 28
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Composition Visualization: Pie ("עוגה") Chart
+
+  [Shape: Content Placeholder 2]
+  Pie Chart: A common visualization of composition
+  Reflects Dimension variable values, and their relative contribution to the total of a fully-additive fact variable (ratio scale)
+  Emphasis on relative size of contributions, and accumulation of to 1 (100%)
+
+  [Shape: Left Brace 4]
+
+  [Shape: Left Brace 5]
+
+  [Shape: TextBox 6]
+  Composition: Relative contribution of
+  Dimension variable items
+
+  [Shape: TextBox 8]
+  Distribution: Relative frequency of
+  Fact variable value “bins”
+
+  [Shape: Speech Bubble: Rectangle with Corners Rounded 9]
+  Pie Chart vs. Histogram: In both, the values accumulate to 1 (100%)
+  Yet, what is the key difference?
+
+  [Shape: Rounded Rectangle 27]
+
+======================================================================
+SLIDE 29
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Pie Chart Extensions
+
+  [Shape: Content Placeholder 7]
+  Donut ("סופגניה") Chart
+  Donut width: May reflect another fact variable (here, sales growth: this year vs. last year)
+
+  [Shape: Content Placeholder 7]
+  Sunburst ("קרני שמש") Chart
+  Composition along dimension-variable hierarchy
+
+======================================================================
+SLIDE 30
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Composition Visualization: Other Forms
+
+  [Shape: Content Placeholder 7]
+  Pareto ("פרטו") Chart
+  Bars: Sorted in a descending order of relative contribution
+  Line: Reflects cumulative contribution
+  Emphasizing the "20-80" principle
+
+  [Shape: Content Placeholder 7]
+  Tree-Map ("מפת עץ") Chart
+  Rectangle area: Relative contribution
+  Color: Comparing another variable (Likely fact, can be dimension)
+
+  [Shape: Content Placeholder 7]
+  Waterfall ("מפל מים") Chart
+  Cumulative contribution to the “bottom line”
+  A “Snapshot”, reflecting positive vs. negative contributions
+
+======================================================================
+SLIDE 31
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Compositions Comparison
+
+  [Shape: Content Placeholder 7]
+  Visualization: Relative-Stacked Bar ("עמודות מוערם-יחסי") Chart
+  Per bar, values accumulate to 100%
+
+  [Shape: TextBox 3]
+  Can we detect difference between the compositions of sub-populations?
+  Composition-comparison table:
+  Comparing compositions between Dimension variable values (here, “Region”)
+  Per dimension value: reflecting the relative contribution another Dimension variable values (here, “Product Line”), with respect to a Fact variable (here, “Sale Transactions”)
+  Each column accumulates to 100%
+
+  [TABLE in shape: Table 3]
+    Row 1:  | Action 
+Figure | Game | Promotional | Stuffed 
+Animal | Total
+    Row 2: East | 70% | 3% | 25% | 2% | 100%
+    Row 3: North | 48% | 48% | - | 4% | 100%
+    Row 4: South | 55% | 42% | - | 2% | 100%
+    Row 5: West | 16% | 60% | 20% | 4% | 100%
+
+======================================================================
+SLIDE 32
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Area ("שטח") Chart: Compositions Comparison Over Time
+
+  [Shape: Content Placeholder 7]
+  Area Chart: Comparison of Fact-variable compositions along Dimension-variable categories
+  X Axis: A Dimension variable with Interval scale (Mostly, Date/Time)
+  Stacked Area Chart: Composition of absolute Fact-variable values
+  Relative Stacked Area Chart: Composition of relative Fact-variable contributions (accumulate to 100%)
+
+  [Shape: Rectangle 3]
+  Stacked Area (“שטח מוערם”) Chart
+
+  [Shape: Rectangle 4]
+  Relative-Stacked ("שטח מוערם-יחסי") Area Chart
+
+======================================================================
+SLIDE 33
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Ribbon ("סרט") Chart: Sorted Compositions Comparison Over Time
+
+  [Shape: Content Placeholder 7]
+  Ribbon Chart: Comparison of fact-variable compositions along dimension-variable categories over date/time
+  Unlike the Area chart: Categories, each linked by a “ribbon”, are sorted in order of contribution – top to bottom
+  X Axis: A Dimension variable with Interval scale (Mostly, Date/Time)
+  Ribbon Chart: Composition of absolute Fact-variable values
+  Relative Ribbon Chart: Composition of relative Fact-variable contributions (accumulate to 100%)
+
+  [Shape: Rectangle 2]
+  Ribbon Chart
+
+  [Shape: Rectangle 3]
+  Relative ("יחסי") Ribbon Chart
+
+======================================================================
+SLIDE 34
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Question 1
+
+  [TABLE in shape: Content Placeholder 7]
+    Row 1: 1. סולם המדידה של המשתנה
+A. סדר (Ordinal) או מרווח (Interval)
+B. שמי (Nominal) או יחס (Ratio) | 2. סוג המשתנה
+A. משקף תרומה יחסית של משתנה עובדה
+B. משקף תרומה יחסית של משתנה מימד
+    Row 2: 3. ערך שכיחות מצטבר
+עשוי לקבל ביטוי בתרשים
+אינו יכול לקבל ביטוי בתרשים | 4. סכימת ערכים
+A. אין בהכרח משמעות לסכימה של ערכי העמודות
+B. סכום התרומות היחסיות מסתכם בהכרח ל-100%
+
+  [Shape: Rectangle 1]
+  איזה מהבאים מתאר באופן המובהק ביותר את ההבדל המהותי בין
+  תרשים המציג התפלגות (Distribution)
+  תרשים המציג הרכב (Composition)
+
+  [Shape: Rounded Rectangle 27]
+
+======================================================================
+SLIDE 35
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Question 2
+
+  [TABLE in shape: Content Placeholder 7]
+    Row 1: 1. 
+16 משתני מימד
+1 משתנה עובדה | 2. 
+2 משתני מימד
+1 משנה עובדה
+    Row 2: 3. 
+16 משתני מימד
+16 משתני עובדה | 4. 
+1 משתנה מימד
+2 משתני עובדה
+
+  [Shape: Rectangle 1]
+  איזה מהבאים מתאר נכונה את הרכב המשתנים בתרשים משמאל ?
+
+  [Shape: Rounded Rectangle 27]
+
+======================================================================
+SLIDE 36
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Question 3
+
+  [TABLE in shape: Content Placeholder 7]
+    Row 1: 1. 
+2 משתני מימד
+1 משתנה עובדה | 2. 
+1 משתנה מימד
+2 משני עובדה
+    Row 2: 3. 
+1 משתנה מימד
+1 משתנה עובדה
+1 משתנה שיכול להתפרש כעובדה או כמימד | 4. 
+כ- 20-25 משתני מימד
+2 משתני עובדה
+
+  [Shape: Rectangle 1]
+  איזה מהבאים מתאר נכונה את הרכב המשתנים בתרשים משמאל ?
+
+  [Shape: Rounded Rectangle 27]
+
+======================================================================
+SLIDE 37
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Question 4
+
+  [TABLE in shape: Content Placeholder 7]
+    Row 1: 1. 
+העמודות יסודרו בסדר אקראי, וקו השכיחות המצטברת יקביל לציר ה-X | 2. 
+העמודה השמאלית תהיה נמוכה יותר מיתר העמודות, וקו השכיחות המצטברת לא יהיה מונוטוני-עולה
+    Row 2: 3. 
+אין השפעה משמעותית על תצוגת העמודות, אך קו השכיחות מיותר ויש להסירו | 4. 
+העמודות תהיינה בגובה שווה פחות או יותר, וקו השכיחות המצטברת יתקרב לאלכסון
+
+  [Shape: Rectangle 1]
+  כיצד ייראה תרשים פרטו (Pareto Chart) באוכלוסיה בה באופן מובהק לא מתקיים עקרון ה- "20-80" ?
+
+  [Shape: Rounded Rectangle 27]
+
+======================================================================
+SLIDE 38
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Question 5
+
+  [TABLE in shape: Content Placeholder 7]
+    Row 1: 1. 
+מהם הסניפים בהם תרומת מכירות "קפה" להכנסה, לעומת תרומת מכירות "מאפה" להכנסה היא המאוזנת ביותר? | 2. 
+מהם הסניפים בהם ניתן לזהות את המתאם הגבוה ביותר בין הזמן הממוצע להכנת כוס קפה לבין היקף המכירות בשנה האחרונה?
+    Row 2: 3. 
+מהם הסניפים עם הפערים הגבוהים ביותר בין הממוצעים וסטיות התקן של סכומי ההזמנות? | 4. 
+מהם הסניפים שהיקף המכירות שלהם נמצא בקו העלייה התלול ביותר בשנה האחרונה?
+
+  [Shape: Rectangle 1]
+  השאלות העסקיות הבאות מתייחסות לפעילות של רשת חנויות בתי קפה עם סניפים רבים ברחבי הארץ.
+  איזו מהן היא המתאימה ביותר לייצוג באמצעות "תרשים קופסה" (Box)?
+
+  [Shape: Rounded Rectangle 8]
+
+======================================================================
+SLIDE 39
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Question 6
+
+  [TABLE in shape: Content Placeholder 7]
+    Row 1: 1. 
+תרשים עמודות (Bar Chart) | 2. 
+תרשים פרטו (Pareto Chart)
+    Row 2: 3. 
+היסטוגרמה (Histogram) | 4. 
+תרשים עוגה (Pie Chart)
+
+  [Shape: Rectangle 1]
+  איזה מהתרשימים הבאים הוא המתאים ביותר למענה על השאלה
+  "מה שיעור העוני בקרב האוכלוסיה בכל יבשת בעולם"?
+
+  [Shape: Rounded Rectangle 27]
+
+======================================================================
+SLIDE 40
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Comparison ("השוואה") Analytics
+
+  [Shape: Rectangle 1]
+  Comparison: Which items perform better ?
+  Categorical values of a dimension variable (Nominal, Ordinal, or Interval scale), compared by aggregated values of a fact variable
+  The fact variable is not necessarily fully-additive
+
+  [Shape: TextBox 2]
+  Textual Presentation:
+  Comparison Table
+
+  [Shape: TextBox 3]
+  Visual Presentation:
+  Bar Chart
+
+  [Shape: TextBox 4]
+  Statistics:
+  Assessing differences between populations
+  E.g., T-Test
+  (Later…)
+
+======================================================================
+SLIDE 41
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Comparison Visualization: Bar ("עמודות") Chart
+
+  [Shape: Content Placeholder 2]
+  Bar Chart: The most common visualization form for comparison inquiries
+  Categorical values of a dimension-variable values
+  Compared by aggregated fact-variable values
+  Visual emphasis on relative size and gaps
+
+  [Shape: Left Brace 4]
+
+  [Shape: Left Brace 5]
+
+  [Shape: TextBox 6]
+  X Axis: Dimension variable values
+  Order: Alphabetical, or by Y-axis values
+
+  [Shape: TextBox 8]
+  X Axis: Fact variable Bins
+  Order: By X-axis values
+
+  [Shape: Content Placeholder 7]
+  Vertical Bar Chart
+
+  [Shape: Content Placeholder 7]
+  Histogram
+
+  [Shape: Content Placeholder 7]
+  Horizontal Bar Chart
+
+  [Shape: Speech Bubble: Rectangle with Corners Rounded 13]
+  Bar chart vs. Histogram: Given the visual similarity, what is the key difference?
+
+  [Shape: Rectangle: Rounded Corners 14]
+
+  [Shape: Rectangle: Rounded Corners 16]
+
+  [Shape: Rectangle: Rounded Corners 17]
+
+  [Shape: Rectangle: Rounded Corners 18]
+
+======================================================================
+SLIDE 42
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Comparison along Multiple Dimension Variables
+
+  [TABLE in shape: Table 3]
+    Row 1: Country | Sales ($M)
+    Row 2: USA | 4.7
+    Row 3: Canada | 3.5
+    Row 4: Mexico | 2.7
+
+  [Shape: Content Placeholder 7]
+  Example: Comparisons along one dimension variable
+
+  [Shape: Content Placeholder 7]
+  Case A: Fully-Additive Fact
+
+  [Shape: Content Placeholder 7]
+  How should we extend each comparison?
+  In this example: By Product Category (A vs. B)
+
+  [TABLE in shape: Table 3]
+    Row 1: Country | Satisfaction
+    Row 2: USA | 8.6
+    Row 3: Canada | 7.8
+    Row 4: Mexico | 9.4
+
+  [TABLE in shape: Table 3]
+    Row 1: Country | Product | Sales ($M)
+    Row 2: USA | A | 3.1
+    Row 3:  | B | 1.6
+    Row 4:  | All | 4.7
+    Row 5: Canada | A | 2.7
+    Row 6:  | B | 0.8
+    Row 7:  | All | 3.5
+    Row 8: Mexico | A | 2.1
+    Row 9:  | B | 0.6
+    Row 10:  | All | 2.7
+
+  [Shape: Content Placeholder 7]
+  Case B: Non-Additive Fact
+
+  [TABLE in shape: Table 3]
+    Row 1:  | Product |  | 
+    Row 2: Country | A | B | All
+    Row 3: USA | 7.1 | 9.3 | 8.6
+    Row 4: Canada | 9.4 | 6.1 | 7.8
+    Row 5: Mexico | 9.9 | 8.7 | 9.4
+
+  [Shape: Content Placeholder 7]
+  Visualization:
+
+  [Shape: Content Placeholder 7]
+  How should extend each chart?
+
+  [Shape: Content Placeholder 7]
+  Case A: Stacked Bar ("עמודות מוערם") Chart
+  Fully-Additive fact
+
+  [Shape: Content Placeholder 7]
+  Case B: Clustered Bar ("עמודות מקובץ") Chart
+  Non-Additive fact
+
+======================================================================
+SLIDE 43
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Exercise: Can you Detect the Pattern?
+
+  [Shape: TextBox 10]
+  1.
+
+  [Shape: TextBox 11]
+  3.
+
+  [Shape: TextBox 12]
+  4.
+
+  [Shape: TextBox 13]
+  5.
+
+  [Shape: TextBox 14]
+  6.
+
+  [Shape: TextBox 15]
+  7.
+
+  [Shape: TextBox 16]
+  8.
+
+  [Shape: TextBox 17]
+  2.
+
+======================================================================
+SLIDE 44
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Line Chart: Comparison along Interval-Scale Dimensions
+
+  [Shape: Content Placeholder 7]
+  Line ("קו") Chart: Visual comparison of fact variable values along values of a dimension variable with interval scale
+  Multiple lines: Comparison along additional dimension variable (here., by country)
+
+  [Shape: Content Placeholder 7]
+  A common use: Reflecting Date/Time variables
+  Reflecting values as a time-series (“סדרה עיתית”)
+  Visual emphasis of time-related behaviors: Trends, Seasonality, and Exceptions
+
+======================================================================
+SLIDE 45
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Line Chart Extensions
+
+  [Shape: Content Placeholder 7]
+  Trend Line
+
+  [Shape: Content Placeholder 7]
+  Actual vs. Forecast
+
+  [Shape: Content Placeholder 7]
+  Prediction Interval
+
+  [Shape: Rectangle 9]
+  Outliers (SPC – Statistical Process Control)
+
+======================================================================
+SLIDE 46
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Comparison Visualization: Dual-Axis ("דו-צירי") Chart
+
+  [Shape: Content Placeholder 7]
+  Dual-Axis Chart: Comparison of Two Fact Variables along Dimension variable categories
+  X-Axis: A Dimension variable with Interval scale, mostly Date/Time
+  Dual Y-Axis: Two Fact variables, one per axis
+    Mostly, “Bar” vs. “Line” charts, with appropriate legend
+
+======================================================================
+SLIDE 47
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Geographical Comparison: Map ("מפה") Chart
+
+  [Shape: Content Placeholder 7]
+  Map Chart: Comparison of geographical Dimension variable values along a Fact variable
+  Modern BI&A tools offer rich mapping and geo-spatial inquiry capabilities
+  Reflecting geographical hierarchy: Location  Neighborhood  City  Region  Country  Continent
+
+  [Shape: TextBox 3]
+  Example:
+  Covid Transition ( Link )
+
+======================================================================
+SLIDE 48
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Relationship  ("יחס") Analytics
+
+  [Shape: TextBox 1]
+  Textual Presentation:
+  Two-Dimensional frequency table
+  2 Fact variables, in “Bins”
+
+  [Shape: TextBox 2]
+  Visual Presentation:
+  Scatter Chart
+
+  [Shape: TextBox 3]
+  Statistics:
+  Assessing the extent of relationship
+  Association: E.g., Pearson Correlation
+  Effect: E.g., Linear Regression
+  (Later…)
+
+  [Shape: Rectangle 4]
+  Relationship: Reflecting association and causal effects between variables
+  Cross-examination of two or more Fact variables with ratio scale, over Dimension variable values
+
+======================================================================
+SLIDE 49
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Relationship Visualization: Scatter ("פיזור") Chart
+
+  [Shape: Content Placeholder 2]
+  Example: Gartner’s “Magic Quadrants”
+  X Axis (Fact): Completeness of Vision
+  Y Axis (Fact): Ability to Execute
+  Dotted items (Dimension): Software vendors
+
+  [Shape: Content Placeholder 7]
+  Scatter Chart: Visualization of relationships between fact variables
+  X Axis, Y Axis: Fact Variables (Ratio Scale)
+  Dots: Dimension Variable items
+  Visual emphasis of association and dispersity
+
+======================================================================
+SLIDE 50
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Scatter Chart Extensions
+
+  [Shape: Content Placeholder 7]
+  Bubble ("בועה") Chart:
+  Extended comparison of relationships
+  2 Dimension variables (items, color)
+  3 Fact variables (X, Y, Bubble Size)
+
+  [Shape: Content Placeholder 7]
+  3-D Scatter Chart:
+  2 Dimension variables (Items, Color)
+  3 Fact variables (X, Y, Z)
+
+  [Shape: Content Placeholder 7]
+  Tagged Scatter Chart:
+  Comparison of relationships
+  The tags (e.g., shape, color, filling) reflect Dimension variable items
+
+======================================================================
+SLIDE 51
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Summary: Dimensions, Facts, and the Nature of Inquiry
+
+  [TABLE in shape: Content Placeholder 5]
+    Row 1: Z | Y | X | … | … | B | A
+    Row 2:  |  |  |  |  |  | 
+    Row 3:  |  |  |  |  |  | 
+    Row 4:  |  |  |  |  |  | 
+    Row 5:  |  |  |  |  |  | 
+    Row 6:  |  |  |  |  |  | 
+    Row 7:  |  |  |  |  |  | 
+    Row 8:  |  |  |  |  |  | 
+    Row 9:  |  |  |  |  |  | 
+    Row 10:  |  |  |  |  |  | 
+    Row 11:  |  |  |  |  |  | 
+    Row 12:  |  |  |  |  |  | 
+    Row 13:  |  |  |  |  |  | 
+    Row 14:  |  |  |  |  |  | 
+
+  [Shape: Left Brace 9]
+
+  [Shape: Left Brace 10]
+
+  [Shape: Rounded Rectangular Callout 10]
+  Dimension Variables: Independent, Input, Explanatory
+  E.g., Customers, Products, Dates, Locations, …
+
+  [Shape: Rounded Rectangular Callout 11]
+  Fact Variables: Dependent, Output, Response
+  E.g., Amounts, Revenues, Units, Grades, …
+
+  [Shape: Rectangle 13]
+  b1
+  (?%)
+
+  [Shape: Rectangle 14]
+  a1
+
+  [Shape: Rectangle 15]
+  b2
+  (?%)
+
+  [Shape: Rectangle 16]
+  b3
+  (?%)
+
+  [Shape: Rectangle 17]
+  a2
+
+  [Shape: Rectangle 18]
+  a3
+
+  [Shape: Right Arrow 14]
+
+  [Shape: Right Arrow 39]
+
+  [Shape: Rounded Rectangular Callout 40]
+  Composition:
+  Dimension items contribution to a Fact
+
+  [Shape: Rounded Rectangular Callout 41]
+  Comparison:
+  Dimension items compared by a Fact
+
+  [Shape: Block Arc 23]
+
+  [Shape: Left-Right Arrow 21]
+
+  [Shape: Rounded Rectangular Callout 42]
+  Distribution:
+  Relative frequency of Fact values
+
+  [Shape: Rounded Rectangular Callout 43]
+  Relationship:
+  Association or effect between Facts
+
+  [Shape: Rectangle 27]
+
+  [Shape: Rounded Rectangular Callout 26]
+  State:
+  Fact presented in aggregation
+
+======================================================================
+SLIDE 52
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Charts Classification
+
+  [Shape: Rectangle 2]
+
+  [Shape: Rectangle 3]
+
+  [Shape: Rectangle 4]
+
+  [Shape: Rectangle 5]
+
+======================================================================
+SLIDE 53
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Question 7
+
+  [TABLE in shape: Content Placeholder 7]
+    Row 1: 1. 
+הרכב (Composition) | 2. 
+השוואה (Comparison)
+    Row 2: 3. 
+התפלגות (Distribution) | 4. 
+יחס (Relationship)
+
+  [Shape: Rectangle 1]
+  הסבר התרשים:
+  הצירים X ו-Y מייצגים ערכים של המשתנים X ו-Y, בהתאמה
+  כל עיגול בתרשים מייצג ערך של המשתנה U
+  גודל העיגול מייצג ערך של המשתנהW
+  מילוי העיגול מייצג ערך של משתנה Z  (מלא:1 , ריק: 0)
+  לאיזו קטגוריה של תרשימים עסקיים ניתן לשייך את התרשים באופן המובהק ביותר?
+
+  [Shape: Rounded Rectangle 10]
+
+  [Shape: Speech Bubble: Rectangle with Corners Rounded 7]
+  Bubble chart
+
+======================================================================
+SLIDE 54
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Question 8
+
+  [TABLE in shape: Content Placeholder 7]
+    Row 1: 1. 
+משתנה מימד אחד 
+ארבעה משתני עובדה | 2. 
+שני משתני מימד 
+שלושה משתני עובדה
+    Row 2: 3. 
+שלושה משתני מימד
+שני משתני עובדה | 4. 
+ארבעה משתני מימד
+משתנה עובדה אחד
+
+  [Shape: Rounded Rectangle 11]
+
+  [Shape: Rectangle 1]
+  הסבר התרשים:
+  הצירים X ו-Y מייצגים ערכים של המשתנים X ו-Y, בהתאמה
+  כל עיגול בתרשים מייצג ערך של המשתנה U
+  גודל העיגול מייצג ערך של המשתנהW
+  +מילוי העיגול מייצג ערך של משתנה Z  (מלא:1 , ריק: 0)
+  איזה מהבאים מתאר נכונה את הרכב המשתנים בסבירות הגבוהה ביותר?
+
+  [Shape: Rounded Rectangle 11]
+
+  [Shape: TextBox 7]
+  ?
+
+  [Shape: Rounded Rectangle 11]
+
+  [Shape: Rounded Rectangle 11]
+
+  [Shape: Rounded Rectangle 11]
+
+  [Shape: Rounded Rectangle 11]
+
+  [Shape: Rounded Rectangle 11]
+
+======================================================================
+SLIDE 55
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Question 9
+
+  [TABLE in shape: Content Placeholder 7]
+    Row 1: 1. 
+מתאם חיובי בין X ל - Y | 2. 
+מתאם שלילי בין X ל - W
+    Row 2: 3. 
+מתאם חיובי בין W ל - Z | 4. 
+מתאם שלילי בין Y ל - Z
+
+  [Shape: Rounded Rectangle 10]
+
+  [Shape: Rectangle 1]
+  הסבר התרשים:
+  הצירים X ו-Y מייצגים ערכים של המשתנים X ו-Y, בהתאמה
+  כל עיגול בתרשים מייצג ערך של המשתנה U
+  גודל העיגול מייצג ערך של המשתנהW
+  מילוי העיגול מייצג ערך של משתנה Z  (מלא:1 , ריק: 0)
+  איזה מהבאים אינו מתאר נכונה מתאם בסבירות גבוהה בין משתנים, שמשתקף בתרשים
+
+======================================================================
+SLIDE 56
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Question 10
+
+  [Shape: Rectangle 4]
+
+  [Shape: Rectangle 7]
+  1.
+
+  [Shape: Rectangle 6]
+
+  [Shape: Rectangle 9]
+  2.
+
+  [Shape: Rectangle 10]
+  3.
+
+  [Shape: Rectangle 11]
+  4.
+
+  [Shape: Rectangle 1]
+  הסבר התרשים:
+  הצירים X ו-Y מייצגים ערכים של המשתנים X ו-Y, בהתאמה
+  כל עיגול בתרשים מייצג ערך של המשתנה U
+  גודל העיגול מייצג ערך של המשתנהW
+  מילוי העיגול מייצג ערך של משתנה Z  (מלא:1 , ריק: 0)
+  לו היינו מפיקים באמצעות אותו סט נתונים תרשימי עמודות (Bar)
+  איזה מהבאים מתאר באופן שגוי במובהק, את צורתו הכללית של תרשים שהיה מתקבל?
+
+  [Shape: Rounded Rectangle 19]
+
+  [Shape: TextBox 27]
+  ?
+
+======================================================================
+SLIDE 57
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Question 11
+
+  [Shape: Rectangle 4]
+  1.
+
+  [Shape: Rectangle 6]
+
+  [Shape: Rectangle 9]
+  2.
+
+  [Shape: Rectangle 10]
+  3.
+
+  [Shape: Rectangle 11]
+  4.
+
+  [Shape: Rounded Rectangle 19]
+
+  [Shape: Rectangle 1]
+  הסבר התרשים:
+  הצירים X ו-Y מייצגים ערכים של המשתנים X ו-Y, בהתאמה
+  כל עיגול בתרשים מייצג ערך של המשתנה U
+  גודל העיגול מייצג ערך של המשתנהW
+  מילוי העיגול מייצג ערך של משתנה Z  (מלא:1 , ריק: 0)
+  לו היינו מפיקים באמצעות אותו סט נתונים תרשימי קופסא (Box),
+  איזה מהבאים מתאר באופן שגוי במובהק, את צורתו הכללית של תרשים שהיה מתקבל?
+
+  [Shape: Rounded Rectangle 11]
+
+  [Shape: Speech Bubble: Rectangle with Corners Rounded 15]
+  משתנה מימד!
+
+======================================================================
+SLIDE 58
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Question 12
+
+  [TABLE in shape: Content Placeholder 7]
+    Row 1: 1. 
+אם בעתיד נראה עלייה בערך X –  בסבירות גבוהה, 
+נראה במקביל לכך גם עלייה בערך Y | 2. 
+אם בעתיד נראה עלייה בערך Y – בסבירות גבוהה, נראה במקביל לכך גם ירידה בערך W
+    Row 2: 3. 
+אם בעתיד נראה שינוי משמעותי הן בערך X והן בערך Y של פריט מסוים – בסבירות גבוהה, הדבר יצביע על שינוי אפשרי בשיוך של הפריט לקטגוריה תחת משתנה U | 4. 
+אם בעתיד נשנה באופן יזום את הסיווג של פריט מקטגוריה u1 לקטגוריה u4, בסבירות גבוהה, הדבר יגרום לעלייה בערכי X ו-Y של אותו הפריט
+
+  [Shape: Rounded Rectangle 10]
+
+  [Shape: Rectangle 1]
+  הסבר התרשים:
+  הצירים X ו-Y מייצגים ערכים של המשתנים X ו-Y, בהתאמה
+  כל עיגול בתרשים מייצג ערך של המשתנה U
+  גודל העיגול מייצג ערך של המשתנהW
+  מילוי העיגול מייצג ערך של משתנה Z  (מלא:1 , ריק: 0)
+  איזה מהבאים אינו נותן פרשנות סבירה למידע המוצג עבור פריטים בקטגוריה Z = 1?
+  הנחה: התרשים מבוסס על נתונים אמינים, וההתנהגות המתוארת בו יציבה לאורך זמן
+
+  [Shape: Rectangle 6]
+  u1
+
+  [Shape: Rectangle 7]
+  u2
+
+  [Shape: Rectangle 8]
+  u3
+
+  [Shape: Rectangle 9]
+  u4
+
+  [Shape: Speech Bubble: Rectangle with Corners Rounded 10]
+  הטיית סיבתיות (Causality Bias)
+
+======================================================================
+SLIDE 59
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Rectangle 19]
+  The university’s “Paid Ratio” target for 2025: 0.850 or higher
+  Was the target met?
+  Visualization?
+
+  [Shape: Title 1]
+  Exercise: Visualization (#1)
+
+  [Shape: TextBox 16]
+  Accepted	26,000
+  Paid:		19,000
+  Paid Ratio: 	  0.692
+
+  [Shape: TextBox 18]
+  Gauge
+
+  [TABLE in shape: Table 20]
+    Row 1: Year | Faculty | Accepted | Paid
+    Row 2: 2021 | A | 8000 | 7000
+    Row 3: 2021 | B | 5000 | 4000
+    Row 4: 2021 | C | 2000 | 500
+    Row 5: 2021 | D | 3000 | 2500
+    Row 6: 2021 | E | 6000 | 3000
+    Row 7: 2022 | A | 7000 | 5500
+    Row 8: 2022 | B | 4000 | 2500
+    Row 9: 2022 | C | 4000 | 2000
+    Row 10: 2022 | D | 3000 | 1500
+    Row 11: 2022 | E | 6000 | 4000
+    Row 12: 2023 | A | 7000 | 5500
+    Row 13: 2023 | B | 4000 | 2000
+    Row 14: 2023 | C | 6000 | 4000
+    Row 15: 2023 | D | 3000 | 1000
+    Row 16: 2023 | E | 7000 | 6000
+    Row 17: 2024 | A | 8000 | 6500
+    Row 18: 2024 | B | 3000 | 1500
+    Row 19: 2024 | C | 7000 | 6000
+    Row 20: 2024 | D | 4000 | 2200
+    Row 21: 2024 | E | 3000 | 1500
+    Row 22: 2025 | A | 7000 | 6000
+    Row 23: 2025 | B | 2000 | 1000
+    Row 24: 2025 | C | 8000 | 7000
+    Row 25: 2025 | D | 5000 | 3000
+    Row 26: 2025 | E | 4000 | 1000
+
+======================================================================
+SLIDE 60
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Rectangle 8]
+  The university’s “Paid Ratio” target for 2025 per faculty: 0.850 or higher
+  Was the target met?
+  Visualization?
+
+  [Shape: Title 1]
+  Exercise: Visualization (#2)
+
+  [TABLE in shape: Table 3]
+    Row 1: Paid Ratio | Paid | Accepted | Faculty
+    Row 2: 0.857 | 6000 | 7000 | A
+    Row 3: 0.500 | 1000 | 2000 | B
+    Row 4: 0.875 | 7000 | 8000 | C
+    Row 5: 0.600 | 3000 | 5000 | D
+    Row 6: 0.250 | 1000 | 4000 | E
+
+  [Shape: TextBox 7]
+  Bar Chart
+
+  [TABLE in shape: Table 12]
+    Row 1: Year | Faculty | Accepted | Paid
+    Row 2: 2021 | A | 8000 | 7000
+    Row 3: 2021 | B | 5000 | 4000
+    Row 4: 2021 | C | 2000 | 500
+    Row 5: 2021 | D | 3000 | 2500
+    Row 6: 2021 | E | 6000 | 3000
+    Row 7: 2022 | A | 7000 | 5500
+    Row 8: 2022 | B | 4000 | 2500
+    Row 9: 2022 | C | 4000 | 2000
+    Row 10: 2022 | D | 3000 | 1500
+    Row 11: 2022 | E | 6000 | 4000
+    Row 12: 2023 | A | 7000 | 5500
+    Row 13: 2023 | B | 4000 | 2000
+    Row 14: 2023 | C | 6000 | 4000
+    Row 15: 2023 | D | 3000 | 1000
+    Row 16: 2023 | E | 7000 | 6000
+    Row 17: 2024 | A | 8000 | 6500
+    Row 18: 2024 | B | 3000 | 1500
+    Row 19: 2024 | C | 7000 | 6000
+    Row 20: 2024 | D | 4000 | 2200
+    Row 21: 2024 | E | 3000 | 1500
+    Row 22: 2025 | A | 7000 | 6000
+    Row 23: 2025 | B | 2000 | 1000
+    Row 24: 2025 | C | 8000 | 7000
+    Row 25: 2025 | D | 5000 | 3000
+    Row 26: 2025 | E | 4000 | 1000
+
+======================================================================
+SLIDE 61
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Exercise: Visualization (#3)
+
+  [Shape: Rectangle 6]
+  Which faculties have the greatest contribution to paid candidates in 2025?
+  Visualization?
+
+  [TABLE in shape: Table 7]
+    Row 1: Year | Faculty | Accepted | Paid
+    Row 2: 2021 | A | 8000 | 7000
+    Row 3: 2021 | B | 5000 | 4000
+    Row 4: 2021 | C | 2000 | 500
+    Row 5: 2021 | D | 3000 | 2500
+    Row 6: 2021 | E | 6000 | 3000
+    Row 7: 2022 | A | 7000 | 5500
+    Row 8: 2022 | B | 4000 | 2500
+    Row 9: 2022 | C | 4000 | 2000
+    Row 10: 2022 | D | 3000 | 1500
+    Row 11: 2022 | E | 6000 | 4000
+    Row 12: 2023 | A | 7000 | 5500
+    Row 13: 2023 | B | 4000 | 2000
+    Row 14: 2023 | C | 6000 | 4000
+    Row 15: 2023 | D | 3000 | 1000
+    Row 16: 2023 | E | 7000 | 6000
+    Row 17: 2024 | A | 8000 | 6500
+    Row 18: 2024 | B | 3000 | 1500
+    Row 19: 2024 | C | 7000 | 6000
+    Row 20: 2024 | D | 4000 | 2200
+    Row 21: 2024 | E | 3000 | 1500
+    Row 22: 2025 | A | 7000 | 6000
+    Row 23: 2025 | B | 2000 | 1000
+    Row 24: 2025 | C | 8000 | 7000
+    Row 25: 2025 | D | 5000 | 3000
+    Row 26: 2025 | E | 4000 | 1000
+
+  [TABLE in shape: Table 8]
+    Row 1: Contribution | Paid | Faculty
+    Row 2: 0.333 | 6000 | A
+    Row 3: 0.056 | 1000 | B
+    Row 4: 0.389 | 7000 | C
+    Row 5: 0.167 | 3000 | D
+    Row 6: 0.056 | 1000 | E
+    Row 7: 1.000 | 19000 | Total
+
+  [Shape: TextBox 10]
+  Pie Chart
+
+======================================================================
+SLIDE 62
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Exercise: Visualization (#4)
+
+  [Shape: Rectangle 2]
+  What are the paid ratio trends per faculty over the years?
+  Visualization?
+
+  [Shape: TextBox 10]
+  Line Chart
+
+  [TABLE in shape: Table 11]
+    Row 1: Paid Ratio
+    Row 2: 0.875
+    Row 3: 0.800
+    Row 4: 0.250
+    Row 5: 0.833
+    Row 6: 0.500
+    Row 7: 0.786
+    Row 8: 0.625
+    Row 9: 0.500
+    Row 10: 0.500
+    Row 11: 0.667
+    Row 12: 0.786
+    Row 13: 0.500
+    Row 14: 0.667
+    Row 15: 0.333
+    Row 16: 0.857
+    Row 17: 0.813
+    Row 18: 0.500
+    Row 19: 0.857
+    Row 20: 0.550
+    Row 21: 0.500
+    Row 22: 0.857
+    Row 23: 0.500
+    Row 24: 0.875
+    Row 25: 0.600
+    Row 26: 0.250
+
+  [TABLE in shape: Table 13]
+    Row 1:  | A | B | C | D | E
+    Row 2: 2021 | 0.875 | 0.800 | 0.250 | 0.833 | 0.500
+    Row 3: 2022 | 0.786 | 0.625 | 0.500 | 0.500 | 0.667
+    Row 4: 2023 | 0.786 | 0.500 | 0.667 | 0.333 | 0.857
+    Row 5: 2024 | 0.813 | 0.500 | 0.857 | 0.550 | 0.500
+    Row 6: 2025 | 0.857 | 0.500 | 0.875 | 0.600 | 0.250
+
+  [TABLE in shape: Table 14]
+    Row 1: Year | Faculty | Accepted | Paid
+    Row 2: 2021 | A | 8000 | 7000
+    Row 3: 2021 | B | 5000 | 4000
+    Row 4: 2021 | C | 2000 | 500
+    Row 5: 2021 | D | 3000 | 2500
+    Row 6: 2021 | E | 6000 | 3000
+    Row 7: 2022 | A | 7000 | 5500
+    Row 8: 2022 | B | 4000 | 2500
+    Row 9: 2022 | C | 4000 | 2000
+    Row 10: 2022 | D | 3000 | 1500
+    Row 11: 2022 | E | 6000 | 4000
+    Row 12: 2023 | A | 7000 | 5500
+    Row 13: 2023 | B | 4000 | 2000
+    Row 14: 2023 | C | 6000 | 4000
+    Row 15: 2023 | D | 3000 | 1000
+    Row 16: 2023 | E | 7000 | 6000
+    Row 17: 2024 | A | 8000 | 6500
+    Row 18: 2024 | B | 3000 | 1500
+    Row 19: 2024 | C | 7000 | 6000
+    Row 20: 2024 | D | 4000 | 2200
+    Row 21: 2024 | E | 3000 | 1500
+    Row 22: 2025 | A | 7000 | 6000
+    Row 23: 2025 | B | 2000 | 1000
+    Row 24: 2025 | C | 8000 | 7000
+    Row 25: 2025 | D | 5000 | 3000
+    Row 26: 2025 | E | 4000 | 1000
+
+======================================================================
+SLIDE 63
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Exercise: Visualization (#5)
+
+  [Shape: Rectangle 2]
+  What are the grade distributions?
+
+  [TABLE in shape: Table 3]
+    Row 1: Final Grade | Entry Grade | Department | Student
+    Row 2: 89 | 520 | A | 1
+    Row 3: 74 | 515 | B | 2
+    Row 4: 84 | 505 | A | 3
+    Row 5: 77 | 527 | B | 4
+    Row 6: 80 | 523 | B | 5
+    Row 7: 81 | 528 | B | 6
+    Row 8: 85 | 511 | A | 7
+    Row 9: 85 | 542 | B | 8
+    Row 10: 76 | 511 | A | 9
+    Row 11: 84 | 507 | A | 10
+    Row 12: 74 | 502 | A | 11
+    Row 13: 82 | 519 | B | 12
+    Row 14: 76 | 507 | A | 13
+    Row 15: 82 | 505 | B | 14
+    Row 16: 86 | 535 | B | 15
+    Row 17: 88 | 550 | B | 16
+    Row 18: 70 | 490 | A | 17
+    Row 19: 93 | 560 | B | 18
+    Row 20: 81 | 503 | A | 19
+    Row 21: 81 | 510 | A | 20
+
+  [Shape: Rectangle 4]
+  Visualization?
+
+  [Shape: Rectangle 7]
+  Entry Grade
+  Mean:	518.50
+  Median:	513.00
+  STDEV:	17.58
+
+  [Shape: Rectangle 8]
+  Final Grade
+  Mean: 	81.40
+  Median: 	81.50
+  STDEV: 	5.70
+
+  [Shape: Rectangle 9]
+  Asymmetrical
+
+  [Shape: Rectangle 10]
+  Symmetrical (~ Normal)
+
+  [Shape: TextBox 12]
+  Histogram + Descriptive Statistics
+
+======================================================================
+SLIDE 64
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Exercise: Visualization (#6)
+
+  [Shape: Rectangle 5]
+  Are grade distributions similar between departments?
+
+  [Shape: Rectangle 6]
+  Visualization?
+
+  [Shape: TextBox 9]
+  Box chart – comparison of distributions
+
+  [TABLE in shape: Table 10]
+    Row 1: Final Grade | Entry Grade | Department | Student
+    Row 2: 89 | 520 | A | 1
+    Row 3: 74 | 515 | B | 2
+    Row 4: 84 | 505 | A | 3
+    Row 5: 77 | 527 | B | 4
+    Row 6: 80 | 523 | B | 5
+    Row 7: 81 | 528 | B | 6
+    Row 8: 85 | 511 | A | 7
+    Row 9: 85 | 542 | B | 8
+    Row 10: 76 | 511 | A | 9
+    Row 11: 84 | 507 | A | 10
+    Row 12: 74 | 502 | A | 11
+    Row 13: 82 | 519 | B | 12
+    Row 14: 76 | 507 | A | 13
+    Row 15: 82 | 505 | B | 14
+    Row 16: 86 | 535 | B | 15
+    Row 17: 88 | 550 | B | 16
+    Row 18: 70 | 490 | A | 17
+    Row 19: 93 | 560 | B | 18
+    Row 20: 81 | 503 | A | 19
+    Row 21: 81 | 510 | A | 20
+
+======================================================================
+SLIDE 65
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Exercise: Visualization (#7)
+
+  [Shape: Rectangle 2]
+  Are students with higher entry grades more successful
+  in terms of final grades?
+
+  [Shape: Rectangle 3]
+  What would be a more appropriate visualization form?
+
+  [TABLE in shape: Table 6]
+    Row 1: Final Grade | Entry Grade | Department | Student
+    Row 2: 89 | 520 | A | 1
+    Row 3: 74 | 515 | B | 2
+    Row 4: 84 | 505 | A | 3
+    Row 5: 77 | 527 | B | 4
+    Row 6: 80 | 523 | B | 5
+    Row 7: 81 | 528 | B | 6
+    Row 8: 85 | 511 | A | 7
+    Row 9: 85 | 542 | B | 8
+    Row 10: 76 | 511 | A | 9
+    Row 11: 84 | 507 | A | 10
+    Row 12: 74 | 502 | A | 11
+    Row 13: 82 | 519 | B | 12
+    Row 14: 76 | 507 | A | 13
+    Row 15: 82 | 505 | B | 14
+    Row 16: 86 | 535 | B | 15
+    Row 17: 88 | 550 | B | 16
+    Row 18: 70 | 490 | A | 17
+    Row 19: 93 | 560 | B | 18
+    Row 20: 81 | 503 | A | 19
+    Row 21: 81 | 510 | A | 20
+
+  [Shape: Rectangle 7]
+  Visualization?
+
+======================================================================
+SLIDE 66
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Exercise: Visualization (#8)
+
+  [Shape: Rectangle 3]
+  The question reflects assessment of predictability:
+  Does the entry grade predict the final grade?
+  Accordingly, the axes should have been reversed
+
+  [Shape: Rectangle 4]
+
+  [Shape: Rectangle 5]
+
+  [TABLE in shape: Table 9]
+    Row 1: Final Grade | Entry Grade | Department | Student
+    Row 2: 89 | 520 | A | 1
+    Row 3: 74 | 515 | B | 2
+    Row 4: 84 | 505 | A | 3
+    Row 5: 77 | 527 | B | 4
+    Row 6: 80 | 523 | B | 5
+    Row 7: 81 | 528 | B | 6
+    Row 8: 85 | 511 | A | 7
+    Row 9: 85 | 542 | B | 8
+    Row 10: 76 | 511 | A | 9
+    Row 11: 84 | 507 | A | 10
+    Row 12: 74 | 502 | A | 11
+    Row 13: 82 | 519 | B | 12
+    Row 14: 76 | 507 | A | 13
+    Row 15: 82 | 505 | B | 14
+    Row 16: 86 | 535 | B | 15
+    Row 17: 88 | 550 | B | 16
+    Row 18: 70 | 490 | A | 17
+    Row 19: 93 | 560 | B | 18
+    Row 20: 81 | 503 | A | 19
+    Row 21: 81 | 510 | A | 20
+
+  [Shape: Rectangle 10]
+  Are students with higher entry grades more successful
+  in terms of final grades?
+
+  [Shape: Rectangle 11]
+  A more appropriate visualization form
+  Yet, what issue should be addressed?
+
+======================================================================
+SLIDE 67
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Exercise: Visualization (#9)
+
+  [Shape: Rectangle 2]
+  Possible enhancement?
+
+  [Shape: Rectangle 4]
+  Are students with higher entry grades more successful
+  in terms of final grades?
+  A more appropriate visualization
+
+  [TABLE in shape: Table 6]
+    Row 1: Final Grade | Entry Grade | Department | Student
+    Row 2: 89 | 520 | A | 1
+    Row 3: 74 | 515 | B | 2
+    Row 4: 84 | 505 | A | 3
+    Row 5: 77 | 527 | B | 4
+    Row 6: 80 | 523 | B | 5
+    Row 7: 81 | 528 | B | 6
+    Row 8: 85 | 511 | A | 7
+    Row 9: 85 | 542 | B | 8
+    Row 10: 76 | 511 | A | 9
+    Row 11: 84 | 507 | A | 10
+    Row 12: 74 | 502 | A | 11
+    Row 13: 82 | 519 | B | 12
+    Row 14: 76 | 507 | A | 13
+    Row 15: 82 | 505 | B | 14
+    Row 16: 86 | 535 | B | 15
+    Row 17: 88 | 550 | B | 16
+    Row 18: 70 | 490 | A | 17
+    Row 19: 93 | 560 | B | 18
+    Row 20: 81 | 503 | A | 19
+    Row 21: 81 | 510 | A | 20
+
+  [Shape: Speech Bubble: Rectangle with Corners Rounded 7]
+  אנליטיקה מאבחנת
+  (Diagnostic Analytics)
+
+======================================================================
+SLIDE 68
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Exercise: Visualization (#10)
+
+  [Shape: Rectangle 2]
+  Are students with higher entry grades more successful
+  in terms of final grades?
+
+  [Shape: Rectangle 3]
+  Tagging permits relationships comparison between departments
+
+  [Shape: Rectangle 8]
+  Interpretation?
+
+  [TABLE in shape: Table 9]
+    Row 1: Final Grade | Entry Grade | Department | Student
+    Row 2: 89 | 520 | A | 1
+    Row 3: 74 | 515 | B | 2
+    Row 4: 84 | 505 | A | 3
+    Row 5: 77 | 527 | B | 4
+    Row 6: 80 | 523 | B | 5
+    Row 7: 81 | 528 | B | 6
+    Row 8: 85 | 511 | A | 7
+    Row 9: 85 | 542 | B | 8
+    Row 10: 76 | 511 | A | 9
+    Row 11: 84 | 507 | A | 10
+    Row 12: 74 | 502 | A | 11
+    Row 13: 82 | 519 | B | 12
+    Row 14: 76 | 507 | A | 13
+    Row 15: 82 | 505 | B | 14
+    Row 16: 86 | 535 | B | 15
+    Row 17: 88 | 550 | B | 16
+    Row 18: 70 | 490 | A | 17
+    Row 19: 93 | 560 | B | 18
+    Row 20: 81 | 503 | A | 19
+    Row 21: 81 | 510 | A | 20
+
+======================================================================
+SLIDE 69
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Presentation Guidelines: KISS (*)
+
+  [Shape: Rectangle 1]
+  (*) Keep It Simple, Stupid (Silly, Sweetheart) !
+
+  [Shape: Content Placeholder 2]
+  Data presentations must be clear, readable, and understand
+  True for Graphic User Interface (GUI) design, in general !
+
+======================================================================
+SLIDE 70
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Presentation Guidelines: Readable and Informative Charts
+
+  [Shape: Content Placeholder 2]
+  What is missing in this chart?
+
+  [Shape: Rounded Rectangular Callout 15]
+  Units
+
+  [Shape: Rounded Rectangular Callout 16]
+  Title
+
+  [Shape: Rounded Rectangular Callout 17]
+  Legend
+
+  [Shape: Rounded Rectangular Callout 18]
+  Scale
+
+  [Shape: Rounded Rectangular Callout 20]
+  Axis Definition
+
+  [Shape: Rounded Rectangular Callout 21]
+  Axis Definition
+
+======================================================================
+SLIDE 71
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Presentation Guidelines: Avoiding Information Overload
+
+  [Shape: Content Placeholder 2]
+  Presentation can easily become unreadable and lead to incorrect interpretation
+  Information Overload - too many items to comprehend
+
+======================================================================
+SLIDE 72
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Presentation Guidelines: Improving Readability
+
+  [Shape: Content Placeholder 2]
+  Alerts: Visual cues that draw end-users’ attention to irregularities
+
+  [Shape: Content Placeholder 7]
+  Color Coding: Highlighting irregular values
+
+  [Shape: Content Placeholder 7]
+  Gauges: Actual value, vs. targets
+
+  [Shape: Content Placeholder 7]
+  Statistical Process Control (SPC) Tags: “Out of Control” alerts
+
+  [Shape: Content Placeholder 2]
+  Reducing Load: Limiting the number of items on display
+
+  [Shape: Content Placeholder 7]
+  “Other”: Combining smaller categories
+
+  [Shape: Content Placeholder 7]
+  Trendlines: Emphasis of trends and patterns
+
+  [Shape: Content Placeholder 7]
+  Scrollbars: Reflecting date/time in Line charts
+
+  [Shape: Rectangle: Rounded Corners 18]
+
+======================================================================
+SLIDE 73
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Presentation Guidelines: Careful Use of Colors
+
+  [Shape: Content Placeholder 7]
+  Example: The “Heat Map” chart
+  Charts category?
+  Comparison
+  Variables?
+  X/Y axes: Dimension variables
+  Color: Fact variable
+  A key issue?
+  The most common color-blindness: Green vs. Red
+  Hence, not recommended…
+
+  [Shape: Content Placeholder 2]
+  Excessive colorization is confusing and unreadable
+  A “rule of thumb”: No more than 8 colors per chart
+
+  [Shape: TextBox 6]
+  Certain coloring schemas are problematic and should be avoided
+
+======================================================================
+SLIDE 74
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Presentation Guidelines: Avoiding 3-D Effects
+
+  [Shape: Content Placeholder 2]
+  but misleading and should be avoided
+  Lead to biased assessment of relative size, harm readability
+  Some BI&A platforms (e.g., Tableau, PowerBI) intentionally do not support 3-D effects in charts
+
+  [Shape: Rectangle 8]
+  3-D effects can be pretty,
+
+  [Shape: Rectangle 10]
+  Who is the leading producer?
+
+  [Shape: Rectangle 11]
+  What is the contribution of “Other” ?
+
+  [Shape: Rectangle 12]
+  Generally, which is more readable?
+
+======================================================================
+SLIDE 75
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Presentation Guidelines: Wrong Visualization Choices
+
+  [Shape: Rectangle 14]
+  Example: Which candidate gets the greatest support (Fox News, 2012)?
+
+  [Shape: Rectangle 15]
+  ?
+
+  [Shape: Rectangle 16]
+  ?
+
+  [Shape: Rectangle 17]
+  ?
+
+  [Shape: Rectangle 18]
+  The support sums-up to 193% ...
+
+  [Shape: Rectangle 19]
+  What is a possible source for such a mistake?
+  Likely,  a “Yes/No” support question for each candidate
+  Comparison inquiry, presented as Composition
+  Support rates are non-additive proportion KPI’s
+  What would have been a better visualization choice?
+
+  [Shape: Content Placeholder 2]
+  Given the inquiry type - some visualization forms choices are strictly wrong!
+
+======================================================================
+SLIDE 76
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Wrong Visualization Choices: More Examples
+
+  [Shape: Rectangle 2]
+  Example:
+  Using a line chart to show groups with “inverted” behaviors
+
+  [Shape: Rectangle 3]
+  Instead: Scatter Chart
+  Emphasizing negative correlation between behaviors
+
+  [Shape: Rectangle 8]
+  Example:
+  Using a stacked bar chart to compare review scores
+
+  [Shape: Rectangle 9]
+  Instead: Clustered Bar
+  Grade is non-additive
+
+  [Shape: Rectangle 12]
+  Example:
+  Given the revenue trend, would you Invest in this firm?
+
+  [Shape: Rectangle 13]
+
+  [Shape: Rectangle 14]
+  Instead: Actual Number
+  In the case, the cumulative trend is meaningless and misleading
+
+======================================================================
+SLIDE 77
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Examples: Note the Numbers…
+
+======================================================================
+SLIDE 78
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Presentation Bias
+
+  [Shape: Content Placeholder 2]
+  Biased presentation, intentional or unintentional, might lead to misinterpretation and flawed decisions
+    Presentation shapes perception - things may look differently, depending on the point of view
+
+  [Shape: Content Placeholder 2]
+  Example: Given the performance KPI presented,
+  Who should get a bonus? Who should be fired?
+
+  [Shape: Rectangle 12]
+
+  [Shape: Rectangle 13]
+
+  [Shape: Speech Bubble: Rectangle with Corners Rounded 14]
+  Biased Scaling: Hiding or over-emphasizing margins
+
+  [Shape: Speech Bubble: Rectangle with Corners Rounded 15]
+  Biased Filtering: Selective display might change perception
+
+======================================================================
+SLIDE 79
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Biased Scaling: Examples( Link )
+
+  [Shape: Rectangle 4]
+  Gas prices are on the rise?
+
+  [Shape: Rectangle 5]
+  The Full Picture…
+
+  [Shape: Rectangle 6]
+  Unemployment rates stay high?
+
+  [Shape: Rectangle 10]
+  Tax Rates Increase?
+
+  [Shape: Rectangle 12]
+
+  [Shape: Rounded Rectangular Callout 27]
+  35%
+
+  [Shape: Rounded Rectangular Callout 28]
+  39.6%
+
+  [Shape: Rectangle 16]
+
+  [Shape: Rectangle 17]
+
+  [Shape: Rectangle 18]
+  Should Britain Leave EU?
+
+  [Shape: Rounded Rectangular Callout 27]
+  43%
+
+  [Shape: Rounded Rectangular Callout 28]
+  39%
+
+  [Shape: Rectangle 11]
+
+  [Shape: Rectangle 22]
+
+  [Shape: Rectangle 23]
+
+  [Shape: Rectangle 24]
+
+  [Shape: Rectangle 25]
+
+  [Shape: Rectangle 26]
+
+======================================================================
+SLIDE 80
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Biased Scaling: Another Example
+
+  [Shape: TextBox 8]
+  0 - 100
+
+  [Shape: TextBox 9]
+  100 - 200
+
+  [Shape: TextBox 10]
+  200 - 300
+
+  [Shape: TextBox 11]
+  300 - 400
+
+======================================================================
+SLIDE 81
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Is Global Warming Truly a Major Crisis ? ( Link )
+
+  [Shape: Rectangle 9]
+
+  [Shape: Rectangle 11]
+
+  [Shape: Rectangle 12]
+
+  [Shape: Rectangle 14]
+  The message: The last five years were the warmest
+  The gap:
+  135 years: ~2.5 F0 = ~1.4 C0
+  Annually: ~0.019 F0  = ~0.010C0
+  Is the phenomenon “over-inflated”?
+  Animation and color choice increases sense of emergency
+  Or should we get worried, despite the small numbers?
+  Note that the pace of warming accelerates
+
+  [Shape: Rectangle 16]
+
+  [Shape: TextBox 2]
+  Does the public believe that   scientists
+  cheat about
+  global warming?
+
+======================================================================
+SLIDE 82
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Biased Presentation: More Examples
+
+  [Shape: Rectangle 3]
+  Who handled the Coronavirus Crisis better?
+
+  [Shape: Rectangle 5]
+
+  [Shape: Rectangle 6]
+
+  [Shape: Rectangle 8]
+
+  [Shape: Rectangle 9]
+  Did the law have a positive impact?
+
+  [Shape: Rectangle 10]
+
+  [Shape: Rectangle 11]
+
+  [Shape: Rectangle 12]
+
+  [Shape: Rectangle 13]
+  A few more examples: Link
+
+======================================================================
+SLIDE 83
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Presentation Guidelines: High Dimensionality
+
+  [Shape: TextBox 18]
+  1 Dimension,
+  1 Fact
+
+  [Shape: Rectangle 19]
+  BI&A environments offer a broad variety of dimension and fact variables
+  The “Curse of Dimensionality”
+
+  [Shape: Rectangle 20]
+  However, common business charts typically present only a limited number of variables
+
+  [Shape: TextBox 24]
+  1 Dimension,
+  2 Facts
+
+  [Shape: TextBox 25]
+  2 Dimension,
+  3 Facts
+
+  [Shape: Content Placeholder 7]
+  Combo: Composition, Relationship
+
+  [Shape: Content Placeholder 7]
+  Combo: Comparison, Distribution, Relationship
+
+  [Shape: Rectangle 30]
+  BI&A Platforms often enable “combo” charts
+  Often, at a price of too-high information overload
+
+======================================================================
+SLIDE 84
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Examples: Multidimensional Visualizations
+
+  [Shape: Content Placeholder 7]
+  Sankey Diagram:
+  Multi-Stage Variables Association
+
+  [Shape: Content Placeholder 7]
+  Parallel Coordinates:
+  Detecting patterns along multiple variables
+
+  [Shape: Rectangle 4]
+  Example: Multi-dimensional visualization ( Link )
+
+======================================================================
+SLIDE 85
+======================================================================
+[Layout: Two Content]
+
+  [Shape: Title 1]
+  Visualization for Cyber-Security ManagementRotem Blinder’s Masters Thesis (2018)
+
+  [Shape: Content Placeholder 2]
+
+  [Shape: Content Placeholder 2]
+  Database (DB) Environments
+  Large and complex DB server settings
+  Mission-critical and sensitive data
+  Hence, a frequent target for cyber attacks
+
+  [Shape: Content Placeholder 2]
+  The Challenge - Security Management
+  Monitoring and analyzing DB-related activities
+  Recognizing hostile usage patterns
+  Preventing attacks, setting security policies
+
+  [Shape: Content Placeholder 2]
+  The Test Case - IBM® Security Guardium
+  A platform for managing DB security
+  Monitors and collects detailed data on DB activities
+  The Goal: Enhancing visualization capabilities
+
+  [Shape: Title 1]
+  IBM® Security Guardium Dashboard – To be improved …
+
+======================================================================
+SLIDE 86
+======================================================================
+[Layout: Two Content]
+
+  [Shape: Title 1]
+  Guidelines for Visualization Development (Munzner, T., 2014)
+
+  [Shape: Rectangle 5]
+  WHAT?
+  The subject: Dataset and data types, Value distributions, …
+
+  [Shape: Content Placeholder 9]
+  WHY?
+  The user task: Discover hidden patterns,  Detect Anomalies, …,
+
+  [Shape: Content Placeholder 9]
+  HOW?
+  Visual characteristics: Position, Color, Size, Angle, Shape, Motion, Filter, Aggregation, …
+
+  [Shape: Content Placeholder 2]
+  Guardium input data: DB logs –  Fast-accumulating data, difficult to decipher
+  14 attributes, mostly categorical or ordinal
+  Four inquiry domains: Users, Actions, Target Object, Timing
+
+  [Shape: AutoShape 8]
+
+======================================================================
+SLIDE 87
+======================================================================
+[Layout: Two Content]
+
+  [Shape: Title 1]
+  The “Why”: Understanding the User’s Task
+
+  [Shape: Rectangle 5]
+  WHAT?
+
+  [Shape: Content Placeholder 9]
+  WHY?
+
+  [Shape: Content Placeholder 9]
+  HOW?
+
+  [Shape: Rectangle 12]
+  The User: A Security Officer
+  In-depth understanding of the organization, its IS and data resources, and potential damage of security risks
+  Strong analytical skills, supported by accessible data and flexible inquiry capabilities
+  Common Tasks:
+  Overview of DB-related activities at different resolutions. Understanding DB-environment topology and data flows.
+    Present Topology
+  Irregular user properties, activities, timing, and data access patterns
+    Exploring Outliers
+
+  [Shape: AutoShape 8]
+
+======================================================================
+SLIDE 88
+======================================================================
+[Layout: Two Content]
+
+  [Shape: Title 1]
+  The “How”: Candidate Visualization Forms
+
+  [Shape: Rectangle 5]
+  WHAT?
+
+  [Shape: Content Placeholder 9]
+  WHY?
+
+  [Shape: Content Placeholder 9]
+  HOW?
+
+  [Shape: AutoShape 8]
+
+  [Shape: TextBox 12]
+  Sunburst Diagram
+
+  [Shape: TextBox 13]
+  Node-Link Diagram
+
+  [Shape: TextBox 20]
+  Sankey Diagram
+
+======================================================================
+SLIDE 89
+======================================================================
+[Layout: Two Content]
+
+  [Shape: Title 1]
+  Example: Sankey Diagram
+
+======================================================================
+SLIDE 90
+======================================================================
+[Layout: Two Content]
+
+  [Shape: Title 1]
+  Example: Node-Link Diagram
+
+======================================================================
+SLIDE 91
+======================================================================
+[Layout: Two Content]
+
+  [Shape: Title 1]
+  Research Opportunity: Novel Visualization Forms
+
+  [Shape: Content Placeholder 2]
+  Visualization forms that can handle:
+  High dimensionality
+  Unstructured data
+  Dynamics
+  Limited cognitive capabilities
+  Task awareness
+
+  [Shape: Rectangle 5]
+  Effectively:
+  “Doing the right things”
+  Detect useful and correct information
+
+  [Shape: Rectangle 6]
+  Efficiently:
+  “Doing things right”
+  Avoid excessive time and resources
+
+  [Shape: Rectangle 9]
+  Innovative Visualization Examples ( Link,  Link,  Link )
+
+======================================================================
+SLIDE 92
+======================================================================
+[Layout: Title and Content]
+
+  [Shape: Title 7]
+  Next: From Business Analytics to BI&A Tools
+
+  [Shape: Right Arrow 8]
+
+  [Shape: AutoShape 2]
+
+  [Shape: TextBox 9]
+  Business Analytics:
+  Methods and tools for extracting meaningful quantitative information from business-relevant data resources
+
+  [Shape: TextBox 10]
+  BI&A Tools:
+  End-users’ applications, supporting analytical usage
+  Common forms: Reports, Dashboards, OLAP tools, etc.
+  Typically, each combines a few business analytics
+
+======================================================================
+SLIDE 93
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Exercise: Analytical Inquiry and Visualization
+
+  [Shape: Content Placeholder 2]
+  Given Fandango’s DW Schema:
+  Per inquiry category - Define a business question that fits its nature:
+  State
+  Comparison
+  Composition
+  Distribution
+  Relationship
+  Instructions:
+  Each question must reflect different Dimension and Fact variables
+  Extend each question, to reflect comparison by another Dimension variable
+  Accordingly, sketch an appropriate visualization for providing the required information
+
+  [Shape: Rectangle 30]
+  DIM – THEATERS
+  Theater
+  Theater Name
+  Seats
+  Size
+  Commission
+  Theater City
+  Theater State
+  Theater Country
+
+  [Shape: Rectangle 30]
+  DIM - CUSTOMERS
+  Customer
+  Customer Name
+  Gender
+  Birthdate
+  Age
+  Age Group
+  Customer City
+  Customer State
+  Customer Country
+
+  [Shape: Rectangle 30]
+  DIM - MOVIES
+  Movie
+  Movie Name
+  Genre
+
+  [Shape: Rectangle 30]
+  DIM_DATES
+  Date
+  Weekday
+  Day
+  Month
+  Quarter
+  Year
+  Year-Month
+  Year-Quarter
+
+  [Shape: Rectangle 5]
+  FACT-ORDERS
+  Order
+  Show
+  Theater
+  Show Date
+  Order Date
+  Movie
+  Customer
+  Grade
+  Commission
+  Orders
+  Gap
+  Local
+  Quantity
+  Amount
+  Charge
+  Commercials
+  Revenue
+
+  [Shape: Line 20]
+
+  [Shape: Line 20]
+
+  [Shape: Line 20]
+
+  [Shape: Line 20]
+
+  [Shape: Line 20]
+
+======================================================================
+SLIDE 94
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Exercise: State
+
+  [Shape: Rectangle: Rounded Corners 2]
+  State: What is the Average Occupancy?
+  Comparison of States: By Month
+  Comparison of States: By Month and Country
+
+  [Shape: Rectangle 14]
+  Gauge
+
+  [Shape: Rectangle 17]
+  Line Chart
+
+  [Shape: Rectangle 18]
+  Line Chart (with dimension categories)
+
+======================================================================
+SLIDE 95
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Exercise: Distribution
+
+  [Shape: Slide Number Placeholder 1]
+  95
+
+  [Shape: Rectangle: Rounded Corners 3]
+  Distribution: What is the distribution of revenues?
+  Comparison of Distributions: By Quarter
+
+  [Shape: Rectangle 5]
+  Histogram
+
+  [Shape: Rectangle 7]
+  Box Chart
+
+======================================================================
+SLIDE 96
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Exercise: Composition
+
+  [Shape: Rectangle: Rounded Corners 2]
+  Composition: Which Age Groups have the greatest contribution to the number of Tickets Sold?
+  Comparison of Compositions: By Gender
+
+  [Shape: Rectangle 4]
+  Donut Chart
+
+  [Shape: Rectangle 5]
+  Relative Stacked Bar Chart
+
+======================================================================
+SLIDE 97
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Exercise: Comparison
+
+  [Shape: Rectangle: Rounded Corners 2]
+  Comparison: Which Movie Genres  have the highest Satisfaction Grades ?
+  Extended Comparison: Compare Satisfaction Grades by Movie Genre and by Theater Size
+
+  [Shape: Rectangle 3]
+  Bar Chart
+
+  [Shape: Rectangle 6]
+  Clustered Bar Chart
+
+======================================================================
+SLIDE 98
+======================================================================
+[Layout: Title and Table]
+
+  [Shape: Title 1]
+  Exercise: Relationship
+
+  [Shape: Rectangle: Rounded Corners 2]
+  Relationship: Does the number of orders per Theater increase with greater Average Discount ?
+  Extended: Reflect the Net-Revenue
+  Comparison of Relationships: By Country
+
+  [Shape: Rectangle 3]
+  Scatter Chart
+
+  [Shape: Rectangle 5]
+  Bubble Chart
+
+  [Shape: Rectangle 7]
+  Bubble Chart
+  (w. Dimension Categories)
+
+
+Total slides: 98

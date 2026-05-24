@@ -1,0 +1,147 @@
+BI&A System Prototype - Design and Implementation
+
+(Please remove all template guidelines and instructions prior to submission)
+
+This assignment consists of three parts, with a total weight of 30% of the course grade:
+Part I (10%) - Requirements analysis and data infrastructure
+Part II (10%) - Traditional BI&A applications
+Part III (10%) - Advanced BI&A applications
+
+The assignment will be carried out in teams and involves the design and the implementation of prototypes for BI&A solutions. At the beginning of the semester, each team will propose via email a topic for the assignment, with a brief description of the chosen topic and datasets. The course team will assess the fit of the proposed topic, in terms of scope and level of complexity, and must approve it before implementation starts.
+The chosen topic may relate to an organization of any kind – commercial, public, or non-profit. It is recommended to choose an organization that at least one of the team members works for or is closely associated with (e.g., via thesis research). The chosen organization should grant access to relevant data resources and permit discussions with employees on performance targets and decisional needs. Teams with no access to such organizational data may choose a well-known organization that can be analyzed by using publicly available sources (e.g., the organization's website, articles, publications).
+The availability of an appropriate data source is critical for the assignment's success. If possible, better use real-world datasets provided by the organization. However, if no such datasets are available, the team may use simulated datasets that reflect typical business activities. Importantly, read all assignment parts and make sure that you are familiar with all the requirements, before proposing datasets. 
+The project must be submitted on time, else if a late submission was pre-approved. The team can perform all assignment parts on team members' personal computers but, if necessary, the team may use software packages installed in the department's teaching labs. The submission involves a written report, as well as a defense session towards the end of the course, in which the team will present the implementation outcomes. 
+The requirements for each assignment part are described next. While the requirements are stated in English – it is up to the team’s choice whether to submit the report written in English or in Hebrew.
+
+Part I (10%) – Requirements Analysis and Data Infrastructure
+In this part, you are required to analyze the organization, its competitive environment, and the associated decision-making needs. This will be followed by analysis of the data source and describe data preparation for analytical use. 
+
+A. (30%, 2-3 pages) The Organization 
+Provide a brief description of the organization. Where does it reside and act? What are the main lines of business? Who are the main customers? What kinds of products and/or services does the organization offer?
+Characterize the competitive environment – To which industry does it belong? What are the key forces that the organization must deal with? Given the environmental characteristics, what high-level business strategy does the organization apply?
+What is the organizational structure, and what are its key units? To which organizational unit does the project relate?
+Briefly describe the business processes that you intend to analyze (if relevant, use a flow chart). To what extent does organizational performance rely on those processes? 
+What key managerial and/or operational decisions are typically associated with those processes?  What factors may potentially affect those decisions?
+Where relevant, apply business models discussed in class. You may also apply other common models for business analysis that you are familiar with.
+
+B. (20%, 1-2 pages) Data Source Analysis
+The system prototype will rely on an operational database that supports key business processes. It is recommended to use a real-world database if available, but you may also use simulated datasets that reflect real-world entities and behaviors in a reliable manner.
+The data should reflect ongoing activities (transactions) associated with a key business process (e.g., sales, production batches, customer support, product shipping, etc.). It is important to choose rich and large enough datasets that would be interesting for data analysis and decision support.
+The database should include a few tables - some that describe ongoing business activities (transactions) and others that describe business entities related to those activities (e.g., customers, products, employees, or geographical locations).
+Data volume - order of thousands or more records in each transaction table, covering significant time periods. Tens to hundreds of items in tables describing key entities.
+The transaction tables must include numerical attributes that would permit performance measurement and statistical analysis – e.g., quantities sold, financial measures of incomes and costs, production time and yield, satisfaction and quality assessment, etc.
+
+Some ideas for a suitable data source:
+A real-world organization – see whether you can get permission to use data obtained from an operational data source, possibly with some "masking" of sensitive details. 
+Google search - several websites offer interesting downloadable databases.
+Simulation – a simulated database that reflects a compelling "business story".
+
+For the chosen data source: 
+Describe the source briefly – From which information system it is obtained? How is the data collected and maintained? What time-period does the data reflect?
+Use the table-structure shown below to describe the data source tables and attributes. An underlined attribute reflects a primary key, and an attribute with parentheses reflects a foreign-key reference to another table.
+In many databases, field names are not necessarily self-explanatory. Therefore, add some description of tables and attributes to let understand their meaning.
+
+C. (30%, 1-2 pages) Data Preparation
+Given the data source, design a data warehouse (DW) model that follows "Star Schema" design principles, which will serve as an infrastructure for prototype applications. Provide clear documentation of the DW design by listing all tables and attributes - in a similar manner to the documentation of the data sources, as described above. 
+
+Dimension tables:
+Per table: What is the primary key? What are the other attributes? If necessary – use a surrogate key, considering the relevant scenarios that were discussed.
+For simplicity – avoid "Snowflake" structures, but rather describe hierarchies by adding relevant attributes to the dimension table. 
+For simplicity – avoid defining dimensions as "Slowly Changing Type 2". 
+
+Fact tables:
+Consider including a few fact tables: High-granularity tables, describing detailed transactions, as well as a low-granularity summary table that integrates aggregated data from both sources along several dimension variables.
+Per table: What is the primary key? What are the other attributes? If applicable, add pre-calculated fact attributes.
+After completing the DW schema design, implement the schema either on an RDBMS server (e.g., SQL Server, or My-SQL) or with an EXCEL file with a separate page per table. Then, convert the data to the required DW structure, and populate all the tables. 
+Optional: For gaining some experience, convert the data by using ETL software - such as the Tableau/Prep software, which you can install on your own on a personal computer. The course team will not be able to provide technical support to ETL packages, other than granting access to self-learning materials.
+
+D. (20%, 1-2 pages) Key Performance Indicators
+Next, you are required to define Key Performance Indicators (KPI’s) toward improving the performance of the business process reflected in the data source. Your KPI definitions should rely on academic and/or professional sources that discuss KPI’s for certain business contexts and offer guidelines for how KPI’s should be developed and analyzed.
+First, search and list (using acceptable academic citation rules) 3-4 sources that discuss the definition of KPI’s that would be relevant within the context of your project.  When choosing the sources, consider the nature of the organization, decision-making requirements, and the source of data available to you. An appropriate search will yield many sources that discuss KPI’s development. For example:
+E-Commerce KPI’s: Link
+Manufacturing KPI’s: Link
+Financial KPI’s: Link
+
+After reviewing the sources you have located, you should propose 4-5 KPI’s that are different in nature and may be suitable for the project. Use the following template to define and characterize each KPI, in accordance with the guidelines stated below.
+Consider the guidelines for developing successful KPI’s and the examples given in the lecture, and avoid the typical errors discussed.
+
+
+Template guidelines (use a separate template for each KPI):
+Title and Description: The KPI should be given an English title – a clear and understandable title, reflecting correctly the essence of the KPI. Add a brief description - what does the KPI measure, and its importance from a business perspective.
+Formula: The KPI calculation should be clearly stated. The formula should refer to the required data fields, as defined earlier in the DW model
+The KPI’s should be defined as a ratio between variables - not just as simple aggregations of raw data.
+Choose KPI’s that can be defined and calculated clearly using the data included in your DW model. There is no point in proposing KPI’s that cannot be implemented and demonstrated later in your applications.
+Units: The units of measurement must be clearly specified – Is the KPI without units (“Unit-Less”)? Monetary units? Other?
+KPI’s without units typically reflect a fraction or percentage. There is no need to state multiplication by "100" in the formula - the percentage display format will be set later, when presenting the KPI in analytical tools.
+Source: Using an appropriate academic-citation form, specify the source on which the KPI development was based.
+Do not propose “self-invented” KPI’s, that cannot be referenced in appropriate sources.
+Specify if the proposed KPI follows the source definition “as is”, or whether certain adjustments were necessary to adapt the KPI definition to the nature of the data available.
+Decision: Briefly discuss - for which decision-making scenarios the proposed KPI can be suitable and useful?
+Nature of Performance Assessment: Briefly explain - does the proposed KPI reflect efficiency assessment or effectiveness assessment?
+At least some KPI’s should reflect efficiency assessment, and at least some others should reflect effectiveness assessment.
+Perspective: With respect to the Balanced Score-card (BSC) methodology, briefly explain – with which BSC perspective can the proposed KPI be associated?
+
+Based on the definitions above, at least 3 of the proposed KPI’s must be implemented and demonstrated in the EXCEL spreadsheet, similar to the demonstration during the course. For each KPI implementation:
+Use PowerPivot to define the KPI name, formula, and presentation characteristics (data format, and "good/average/bad" value limits, etc.)
+Use a Pivot Table that relies on the Power-Pivot model to illustrate a simple comparison of KPI values ​along different dimension variables
+Per KPI – use as separate Pivot Table, on a separate page, and select 1-2 different dimension variables to display the comparison
+Optional: Accompany the textual display of KPI values with an appropriate chart produced using the Pivot Chart
+
+Part II (10%) - Traditional BI&A Applications
+This part involves prototyping applications that demonstrate the more traditional capabilities and tool-design styles. 
+All applications in this part must use the data warehouse that was implemented and populated in the previous part and must not use the source data "as is".
+
+Platforms:
+The recommended tools for performing this part are Tableau or PowerBI. These tools are available on the department's lab computers and are easy to install on personal computers. No training will be provided for those tools – you are required to get familiar with them by self-learning.
+Upon pre-approval from the course lecturer, a team may also use other commercial BI&A platforms. Teams may also consider implementing certain components with EXCEL, using its advanced BI&A capabilities.
+
+Applications:
+The outcomes of this part should demonstrate typical forms of traditional BI&A applications. The tools design should relate to the preliminary analysis in the previous section - supporting key business processes, providing the required information to managerial decisions, and reflecting the associated KPI's.
+
+(40%, 20%, each) Two Business Reports: 
+Implement two reports, each reflecting a different aspect of the business processes that you analyze. The reports should answer important business questions and/or support decisions related with respect to that process. 
+The reports should have a professional "look and feel" and be designed for convenient use. They should convey the required information in a clear and well-organized manner and provide the right support for user needs.
+Given information needs, reports may include both textual and graphical display forms.
+The reports should offer filtering by certain relevant parameters - e.g., date range, product category, or a specific customer.
+At the defense meeting, the team will be required to explain the role of each report in managing the associated process, what business purpose each report served, and what decisions does it intended to support.
+
+(30%) Digital Dashboard:
+Implement an effective and usable digital dashboard that would let managers view and investigate organizational performance along various KPI's.
+Design the dashboard to have professional "look and feel", highlighting the important and relevant information, without excessive visual overload.
+The dashboard should allow "Drill Down" to a more detailed view of the data behind the displayed KPI's. For example - suppose the dashboard shows a graph of sales volume over time. A "Drill Down" will permit segmentation along geographical regions and/or product categories, allowing focus on a specific data section that may explain sales behavior and trends.
+At the defense meeting, the team will be required to explain how managers will use the dashboard, and the rationale behind the dashboard design. The team will also have to demonstrate typical usage of the dashboard, including drilling-down to relevant details.
+
+ (30%) On-Line Analytical Processing (OLAP) tool:
+The OLAP tools should enable interactive and flexible investigation of the data along a broad variety of dimension and fact variables.
+The OLAP tool should have a professional "look and feel" and permit comfortable and efficient investigation, using both textual and graphical display forms.
+At the defense meeting, the team will demonstrate how the OLAP tool is used for a flow of data inquiries that lead to interesting and helpful insights. Consider applying “data storytelling” principles to enhance the OLAP tool presentation and demonstrate its potential contribution toward proving a compelling “story” reflected by data analysis.
+
+Report Submission Requirements (1-2 pages + relevant screenshots):
+A brief written summary, that describes the tools developed. What management decisions are they intended to support? What were the guidelines and principles that guided their design? What key elements of data and visual display do they offer?
+Include sample tool screenshots. There is no need to show all interfaces – 1-2 main interfaces per tool would be sufficient.
+
+Part III (10%) - Advanced BI&A Applications
+
+This part involves prototyping applications that demonstrate advanced capabilities and tool-design styles. 
+The applications must use the data warehouse that was implemented and populated in the previous part and must not use the source data "as is".
+
+Platforms:
+Implementation in this part may require the use of downloadable Open-Source tools (such as R language, with a Shiny interface development package), or self-development of certain components (Java, C #, Python, etc.).
+The BI&A platforms used in part II do not necessarily offer advanced predictive and statistical analysis capabilities. However, those tools offer convenient interfaces with R and other software packages for developing analytical models.
+EXCEL is also suitable for prototyping advanced utilities, as it offers various relevant tools (e.g., VBA coding, interface design, optimization, and statistical packages).
+
+A+B. Applications (50%, each):
+Implement two separate applications, different in their style and characteristics, which illustrate support for two different organizational decision-making scenarios. The nature of the applications and the use of data are subject to the team’s choice and creativity. 
+It would be important to distinguish the applications in this part from the traditional BI&A applications presented in the previous part, so that they justify the title "advanced". For example, a team may consider applying some of the following features and guidelines:
+Demonstrating a transition from "Reactive BI&A" to "Proactive BI&A".
+Using statistical techniques to estimate, predict, and test significance. 
+Integrating outcomes of machine learning algorithms.
+Developing and integrating predictive and/or prescriptive analytics. 
+Using state-of-the-art visualizations, substantially different from traditional charts. 
+Demonstrate prescriptive implementation and recommendation mechanisms - tools that execute part of the decision and guide the user "what to do next?"
+At the defense meeting, the team will demonstrate the tools and explain why are they considered as "advanced". Pay attention not only to the underlying algorithmic sophistication, but also to user experience. Make sure that the tools provide convenient interfaces and display properly the required information needed for decision support. 
+
+Report Submission Requirements (1-2 pages + relevant screenshots):
+A brief written summary that describes the tools. What management decisions are they intended to support? What were the guidelines and principles for designing them? What key elements of data and visual display do they offer? What advanced capabilities were used? 
+If the tool applies certain algorithms – provide appropriate explanation, preferably accompanied by mathematical formulation.
+Include sample tool screenshots. There is no need to show all interfaces – 1-2 main interfaces for each tool would be sufficient.

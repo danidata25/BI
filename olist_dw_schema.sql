@@ -73,7 +73,7 @@ CREATE TABLE dim_product (
 -- Fact: fact_order_item  (high granularity - one row per order line)
 -- ---------------------------------------------------------------------
 CREATE TABLE fact_order_item (
-    sk_order                    VARCHAR(32)   NOT NULL,
+    order_id                    VARCHAR(32)   NOT NULL,
     order_item_id               SMALLINT      NOT NULL,
     sk_date_purchase            INTEGER       NOT NULL REFERENCES dim_date(sk_date),
     sk_date_delivered           INTEGER       REFERENCES dim_date(sk_date),
@@ -89,7 +89,7 @@ CREATE TABLE fact_order_item (
     delivery_days               SMALLINT,
     is_on_time                  SMALLINT,
     review_score                SMALLINT,
-    PRIMARY KEY (sk_order, order_item_id)
+    PRIMARY KEY (order_id, order_item_id)
 );
 
 CREATE INDEX ix_foi_date_purchase  ON fact_order_item (sk_date_purchase);

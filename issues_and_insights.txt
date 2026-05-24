@@ -1,0 +1,182 @@
+Issues & Insights Log
+=====================
+Olist BI Project — Running notes on data quality issues and analytical observations
+
+
+────────────────────────────────────────────────────────────
+ISSUE #1 — On-Time Delivery Rate shows ~100% for all regions
+────────────────────────────────────────────────────────────
+Date discovered: May 21, 2026
+Where: Report A, Visual 2 (On-Time Rate by Seller Region)
+
+Problem:
+  All 5 seller regions show an on-time delivery rate of ~1.0 (100%),
+  which produces no meaningful insight and is misleading.
+
+Root cause:
+  The ETL computes is_on_time = 1 if order_delivered_customer_date <= order_estimated_delivery_date,
+  and is_on_time = 0 if delivered late, and NULL if the order was never delivered.
+  The DAX measure excludes NULLs (undelivered orders) from the denominator.
+  Since the Olist dataset only records a delivery date for orders that were
+  successfully completed, the sample is heavily biased toward fulfilled orders,
+  which naturally skew on-time. The undelivered/cancelled orders are silently
+  excluded, inflating the rate to near 100%.
+
+Decision:
+  Replaced this visual with "Avg Review Score by Seller Region" which shows
+  real variation across regions and is a genuinely useful business metric.
+
+Recommendation for documentation (Section C / ETL notes):
+  Note that is_on_time should be interpreted with caution — it reflects
+  on-time performance only among delivered orders, not all orders placed.
+
+
+────────────────────────────────────────────────────────────
+INSIGHT #1 — Revenue & Gross Profit by Seller Tier
+────────────────────────────────────────────────────────────
+Date discovered: May 21, 2026
+Where: Report A, Visual 1 (Revenue & Gross Profit by Seller Tier)
+
+Business Purpose:
+  This visual shows how total platform value is distributed across seller tiers.
+  It helps identify whether Olist depends mainly on a small group of high-volume
+  sellers or on a broad base of medium sellers.
+
+Finding: Silver sellers drive the most total revenue
+
+Observation:
+  Silver tier sellers (5K–50K BRL individual revenue) collectively generate
+  more total revenue (~8.1M BRL) than Gold sellers (~4.6M BRL) or Bronze (~3.2M BRL).
+
+Interpretation:
+  The "middle class" of sellers is the backbone of the platform.
+  There are significantly more Silver sellers than Gold, so even though
+  each Gold seller individually earns more, the volume of Silver sellers
+  dominates the aggregate. This is consistent with the Pareto principle
+  applied at the platform level.
+
+Caveat:
+  seller_tier is based on cumulative price sum (product revenue, freight excluded),
+  not on gross profit or order frequency. A seller with one high-value transaction
+  can reach Gold without being a consistently active or profitable seller.
+  See Issue #2 below for full documentation of this limitation.
+
+
+────────────────────────────────────────────────────────────
+ISSUE #2 — seller_tier and gross_profit: documented limitations
+────────────────────────────────────────────────────────────
+Date discovered: May 21, 2026
+Where: ETL (etl_load_dw.py), dim_seller and fact_order_item
+
+Limitation A — seller_tier is a revenue bracket, not a performance measure
+  Definition: Bronze < 5,000 BRL | Silver 5,000–50,000 BRL | Gold >= 50,000 BRL
+  Basis: total_revenue = SUM(price) per seller — freight excluded, order count ignored.
+  Problem 1: A seller with one expensive sale qualifies as Gold regardless of activity.
+  Problem 2: The tier does not reflect margin — a high-revenue, low-margin seller
+             ranks the same as a high-revenue, high-margin seller.
+  Problem 3: total_revenue for tier uses price only; the revenue field in
+             fact_order_item includes freight (price + freight_value). These are
+             not on the same basis.
+
+Limitation B — unit_cost is simulated, not from source data
+  Definition: unit_cost = list_price * 0.60 (assumes 40% gross margin).
+  list_price = avg(transaction price) per product across all orders in dim_product.
+  Problem: unit_cost is derived from the product average price, not from the
+           specific transaction price. This means gross_profit = price - unit_cost
+           uses two different price references. In discounted transactions,
+           unit_cost may exceed actual price * 0.60, understating profit.
+           In extreme cases, gross_profit can be mathematically negative.
+
+Limitation C — gross_profit excludes freight costs
+  revenue = price + freight_value (includes freight as income).
+  gross_profit = price - unit_cost (no freight cost deducted).
+  These two metrics are not on a consistent basis; gross_profit overstates
+  the true margin if freight is a real cost to the seller.
+
+Justification for accepting these limitations (not fixing):
+  1. The Olist dataset contains no actual cost data — simulation is the only option.
+  2. The assignment explicitly permits "simulated datasets that reflect real-world
+     entities and behaviors in a reliable manner" (BIA Project brief, Section B).
+  3. The project is described throughout as a "prototype" — not a production
+     financial system.
+  4. The assignment encourages simplicity: "For simplicity – avoid SCD Type 2",
+     "For simplicity – avoid Snowflake". The same principle applies here.
+  5. Pre-calculated fact attributes (gross_profit, revenue) are explicitly required
+     by the assignment: "if applicable, add pre-calculated fact attributes."
+
+Required disclosure in report (Section C and Part II summary):
+  - unit_cost is simulated as avg(transaction_price) * 0.60 per product (SCD Type 1).
+  - gross_profit is an approximation and should not be interpreted as an accounting figure.
+  - seller_tier reflects cumulative product revenue brackets; it is an operational
+    segmentation variable, not a composite performance score.
+
+Business implication:
+  Retention and support programs should prioritize Silver sellers —
+  losing a significant portion of them would hurt platform revenue more
+  than losing a few Gold sellers.
+
+
+────────────────────────────────────────────────────────────
+INSIGHT #2 — Review Score vs Revenue per Seller (Scatter Chart)
+────────────────────────────────────────────────────────────
+Date discovered: May 22, 2026
+Where: Report A, Visual 3 (Scatter Chart)
+
+Business Purpose:
+  This visual shows whether high-revenue sellers also deliver high customer
+  satisfaction, or whether revenue and quality are decoupled on the platform.
+  It helps identify which individual sellers are assets vs. risks to Olist.
+
+Visual Design Note:
+  A logarithmic scale is applied on the Y-axis (Sum of Revenue). This does NOT
+  change the data values — a seller with 500K BRL revenue still plots at 500K.
+  What changes is the axis spacing: each grid line represents a 10x step
+  (0.1K → 1K → 10K → 100K → 1,000K) instead of equal intervals.
+  This is necessary because seller revenues span 4 orders of magnitude.
+  Without log scale, all Bronze sellers (low revenue) collapse invisibly to
+  the bottom, making the chart useless. With log scale, all three tiers are
+  clearly visible and comparable.
+
+Findings:
+  - Gold sellers (dark blue, large dots) cluster in the top-right — high revenue
+    AND high review scores. These are the platform's most valuable sellers.
+  - Some Gold sellers appear at review score ~3 — high revenue but mediocre
+    satisfaction. These are platform risk sellers: commercially valuable but
+    damaging Olist's reputation on partner platforms.
+  - Bronze sellers (light blue, small dots) are scattered across the full
+    review score range — low revenue, mixed quality. Some have excellent scores
+    but haven't scaled. These are growth candidates.
+  - Silver sellers (orange) occupy the middle band as expected.
+
+Business implication:
+  Olist should not rely on revenue alone to evaluate sellers. A seller in the
+  high-revenue / low-review quadrant generates short-term GMV but risks
+  degrading Olist's standing on Mercado Livre, B2W, and other partner platforms.
+  Quality enforcement must be applied independently of revenue tier.
+
+
+────────────────────────────────────────────────────────────
+INSIGHT #3 — Monthly Revenue Trend by Seller Tier (Line Chart)
+────────────────────────────────────────────────────────────
+Date discovered: May 22, 2026
+Where: Report A, Visual 5 (Line Chart, Page 2)
+
+Business Purpose:
+  This visual shows how revenue evolved over time across seller tiers,
+  revealing platform growth trajectory, seasonal patterns, and whether
+  each tier is expanding or plateauing.
+
+Findings:
+  - All three tiers show consistent growth from Oct 2016 through mid-2018,
+    confirming the platform was in a healthy growth phase during this period.
+  - Silver sellers consistently lead in revenue volume throughout the period.
+  - A visible spike appears around November 2017, likely corresponding to
+    Black Friday / seasonal peak demand.
+  - Gold and Bronze lines track closely, suggesting similar growth rates
+    for the top and bottom revenue brackets during this period.
+
+Data Boundary Note (report disclosure required):
+  The sharp decline at the end of the time series (Oct–Nov 2018) reflects
+  an incomplete final period in the dataset rather than an actual revenue drop.
+  The dataset covers orders through November 2018 with the last months only
+  partially populated. This artifact should not be interpreted as a business trend.
