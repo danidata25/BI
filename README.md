@@ -16,6 +16,7 @@ A full data warehouse and BI project built on the [Olist Brazilian E-Commerce da
 - [x] Report A — Seller Performance (Power BI, 5 visuals + slicer)
 - [ ] Add report screenshots to `assets/` folder and link them in the Report A section below *(screenshots ready, just need saving to repo)*
 - [ ] Report B — Market & Customer Trends *(logic to be finalized)*
+  - [ ] Reconfigure freight & delivery-days matrices: add clearer axis labels / annotation text so it's obvious that **rows = seller region** and **columns = customer region** (current layout is misleading)
 - [ ] Dashboard *(logic to be finalized)*
 - [ ] OLAP Tool *(logic to be finalized)*
 
