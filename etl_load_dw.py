@@ -190,6 +190,7 @@ def build_dim_date(orders: pd.DataFrame) -> list:
     date_cols = [
         "order_purchase_timestamp",
         "order_approved_at",
+        "order_delivered_carrier_date",
         "order_delivered_customer_date",
         "order_estimated_delivery_date",
     ]
@@ -414,14 +415,17 @@ def build_fact_order_item(
 ) -> list:
     """
     One row per (order_id, order_item_id).
-    revenue      = price + freight_value
-    gross_profit = price - unit_cost
-    delivery_days = (delivered - purchase).days
-    is_on_time   = 1 if delivered <= estimated else 0
-    review_score = from order_reviews (first review per order)
+    revenue              = price + freight_value
+    gross_profit         = price - unit_cost
+    delivery_days        = (delivered - purchase).days  (total)
+    seller_handling_days = (carrier_handoff - purchase).days   (SELLER phase)
+    carrier_transit_days = (delivered - carrier_handoff).days  (CARRIER phase)
+    is_on_time           = 1 if delivered <= estimated else 0
+    review_score         = from order_reviews (first review per order)
     """
     # Parse dates
-    for col in ["order_purchase_timestamp", "order_delivered_customer_date",
+    for col in ["order_purchase_timestamp", "order_delivered_carrier_date",
+                "order_delivered_customer_date",
                 "order_estimated_delivery_date"]:
         orders[col] = pd.to_datetime(orders[col], errors="coerce")
 
@@ -453,6 +457,7 @@ def build_fact_order_item(
     # Build fact rows
     fact = items.merge(
         orders[["order_id", "customer_id", "order_purchase_timestamp",
+                "order_delivered_carrier_date",
                 "order_delivered_customer_date", "order_estimated_delivery_date"]],
         on="order_id", how="left"
     )
@@ -472,16 +477,33 @@ def build_fact_order_item(
     fact["sk_date_purchase"] = purchase_date.apply(
         lambda d: None if pd.isna(d) else int(d.strftime("%Y%m%d"))
     )
+    fact["sk_date_carrier"] = fact["order_delivered_carrier_date"].apply(date_to_sk)
     fact["sk_date_delivered"] = fact["order_delivered_customer_date"].apply(date_to_sk)
     fact["sk_date_estimated_delivery"] = fact["order_estimated_delivery_date"].apply(date_to_sk)
 
-    # delivery_days
+    # delivery_days (total: purchase -> customer)
     def calc_delivery(row):
         if pd.isna(row["order_delivered_customer_date"]) or pd.isna(row["order_purchase_timestamp"]):
             return None
         return (row["order_delivered_customer_date"] - row["order_purchase_timestamp"]).days
 
     fact["delivery_days"] = fact.apply(calc_delivery, axis=1)
+
+    # seller_handling_days (purchase -> carrier handoff): the SELLER-owned phase
+    def calc_seller_handling(row):
+        if pd.isna(row["order_delivered_carrier_date"]) or pd.isna(row["order_purchase_timestamp"]):
+            return None
+        return (row["order_delivered_carrier_date"] - row["order_purchase_timestamp"]).days
+
+    fact["seller_handling_days"] = fact.apply(calc_seller_handling, axis=1)
+
+    # carrier_transit_days (carrier handoff -> customer): the CARRIER-owned phase
+    def calc_carrier_transit(row):
+        if pd.isna(row["order_delivered_customer_date"]) or pd.isna(row["order_delivered_carrier_date"]):
+            return None
+        return (row["order_delivered_customer_date"] - row["order_delivered_carrier_date"]).days
+
+    fact["carrier_transit_days"] = fact.apply(calc_carrier_transit, axis=1)
 
     # is_on_time (1/0/None)
     def calc_on_time(row):
@@ -502,6 +524,7 @@ def build_fact_order_item(
             r["order_id"],          # order_id (VARCHAR, natural business key)
             int(r["order_item_id"]),
             int(r["sk_date_purchase"]),
+            nan_to_none(r.get("sk_date_carrier")),
             nan_to_none(r.get("sk_date_delivered")),
             nan_to_none(r.get("sk_date_estimated_delivery")),
             int(r["sk_customer"]),
@@ -513,6 +536,8 @@ def build_fact_order_item(
             nan_to_none(r.get("gross_profit")),
             nan_to_none(r.get("unit_cost")),
             nan_to_none(r.get("delivery_days")),
+            nan_to_none(r.get("seller_handling_days")),
+            nan_to_none(r.get("carrier_transit_days")),
             nan_to_none(r.get("is_on_time")),
             nan_to_none(r.get("review_score")),
         )))
@@ -538,11 +563,12 @@ def build_fact_daily_seller_category(
         return [], {}
 
     cols = [
-        "order_id", "order_item_id", "sk_date_purchase", "sk_date_delivered",
-        "sk_date_estimated_delivery",
+        "order_id", "order_item_id", "sk_date_purchase", "sk_date_carrier",
+        "sk_date_delivered", "sk_date_estimated_delivery",
         "sk_customer", "sk_seller", "sk_product",
         "price", "freight_value", "revenue", "gross_profit", "unit_cost",
-        "delivery_days", "is_on_time", "review_score",
+        "delivery_days", "seller_handling_days", "carrier_transit_days",
+        "is_on_time", "review_score",
     ]
     df = pd.DataFrame(fact_rows, columns=cols)
 
@@ -719,11 +745,12 @@ def main():
         dim_cust_sk, dim_sell_sk, dim_prod_sk,
     )
     bulk_insert(cur, "fact_order_item",
-                ["order_id", "order_item_id", "sk_date_purchase", "sk_date_delivered",
-                 "sk_date_estimated_delivery",
+                ["order_id", "order_item_id", "sk_date_purchase", "sk_date_carrier",
+                 "sk_date_delivered", "sk_date_estimated_delivery",
                  "sk_customer", "sk_seller", "sk_product",
                  "price", "freight_value", "revenue", "gross_profit", "unit_cost",
-                 "delivery_days", "is_on_time", "review_score"],
+                 "delivery_days", "seller_handling_days", "carrier_transit_days",
+                 "is_on_time", "review_score"],
                 fact_rows)
     conn.commit()
 

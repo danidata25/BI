@@ -76,6 +76,7 @@ CREATE TABLE fact_order_item (
     order_id                    VARCHAR(32)   NOT NULL,
     order_item_id               SMALLINT      NOT NULL,
     sk_date_purchase            INTEGER       NOT NULL REFERENCES dim_date(sk_date),
+    sk_date_carrier             INTEGER       REFERENCES dim_date(sk_date),
     sk_date_delivered           INTEGER       REFERENCES dim_date(sk_date),
     sk_date_estimated_delivery  INTEGER       REFERENCES dim_date(sk_date),
     sk_customer                 INTEGER       NOT NULL REFERENCES dim_customer(sk_customer),
@@ -87,6 +88,8 @@ CREATE TABLE fact_order_item (
     gross_profit                NUMERIC(10,2),
     unit_cost                   NUMERIC(10,2),
     delivery_days               SMALLINT,
+    seller_handling_days        SMALLINT,
+    carrier_transit_days        SMALLINT,
     is_on_time                  SMALLINT,
     review_score                SMALLINT,
     PRIMARY KEY (order_id, order_item_id)

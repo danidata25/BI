@@ -328,3 +328,73 @@ Honest caveats (for the defense):
     precisely; the pie prioritises the "Silver dominates" message.
   - Delivery -> satisfaction is a strong correlation, not proven causation
     (category/season confounders not controlled in this single view).
+
+
+──────────────────────────────────────────────────────
+INSIGHT #4 / CHANGE #3 — Split delivery time into seller vs carrier phases
+──────────────────────────────────────────────────────
+Date: June 12, 2026
+Where: Schema (olist_dw_schema.sql), ETL (etl_load_dw.py), Report A
+
+Motivation:
+  Total delivery_days blends two ownership phases. Olist's model: the SELLER
+  prepares + posts the package; a partner CARRIER collects + delivers it. To
+  assign accountability for slow delivery we must separate the two.
+
+Change (schema + ETL, fully reproducible re-run):
+  Loaded order_delivered_carrier_date (the seller->carrier handoff) into the
+  warehouse and added to fact_order_item:
+    - sk_date_carrier         (handoff date FK to dim_date)
+    - seller_handling_days = (carrier_handoff - purchase).days     [SELLER phase]
+    - carrier_transit_days = (delivered - carrier_handoff).days    [CARRIER phase]
+  (delivery_days unchanged = total purchase -> customer.)
+
+Finding (avg days per review score, delivered+reviewed items):
+    score | seller | carrier | total |    n
+      1   |  4.2   |  14.5   | 19.2  | 12,436
+      2   |  3.5   |  11.3   | 15.3  |  3,662
+      3   |  3.1   |  10.0   | 13.6  |  9,178
+      4   |  2.8   |   8.5   | 11.7  | 21,069
+      5   |  2.4   |   7.3   | 10.2  | 63,023
+
+  The CARRIER phase dominates both the absolute time (~3-4x the seller phase)
+  and the variance tied to satisfaction: across 1*->5*, seller handling shrinks
+  1.8 days while carrier transit shrinks 7.2 days. So ~80% of the delivery-time
+  gap between angry and happy customers is carrier-side. The operational lever is
+  logistics/last-mile coverage, not seller onboarding/SLAs. This also decomposes
+  the delivery->satisfaction MECHANISM, strengthening the causal argument beyond
+  a raw correlation (stratifiable, temporally ordered, operationally plausible).
+
+Next visual (TODO): stacked/clustered box or bar of seller_handling_days vs
+  carrier_transit_days across review scores to show the split visually.
+
+
+──────────────────────────────────────────────────────
+CHANGE #4 — Page redesign: pie + simulated margin OUT, delivery breakdown IN
+──────────────────────────────────────────────────────
+Date: June 12, 2026
+Where: Report A (Power BI), README.md
+
+What changed on the page:
+  - Built "Delivery Time Breakdown by Category" stacked column:
+      X = product_category_group
+      Y (stacked) = Avg seller_handling_days + Avg carrier_transit_days
+    The carrier (dark) segment dominates EVERY category bar -> the seller-vs-
+    carrier accountability split holds platform-wide, not just in aggregate.
+    Worst: Home & Garden / Electronics (~12.5 avg days). Best: Food & Drinks (~9.7).
+  - REMOVED the "Revenue Share by Seller Tier" pie. It answered a different
+    question (who earns) than the page's delivery story (who's accountable).
+  - REMOVED the simulated "Gross Profit Margin %" matrix column. unit_cost is a
+    fixed 40% assumption, so the column was noise, not signal. Better to drop it
+    than to defend a fabricated number at the review.
+  - REMOVED "% Negative Reviews" from the matrix to declutter; kept % Positive.
+  - ADDED "Average of delivery_days" to the matrix. delivery_days is RATIO-scale,
+    so a mean is statistically valid here (unlike review_score, which is ordinal).
+
+Why it's better:
+  The whole page now has ONE defensible theme grounded in real source data:
+  delivery performance and who owns it. No mixed messaging, no simulated metrics.
+
+Label nit to fix in PBIX: matrix column shows auto-name "%GT Count of sk_seller"
+  and the breakdown legend shows "Average of seller_handling_days / carrier_transit_days".
+  Rename in-visual (Seller Share % ; Seller handling / Carrier transit) for polish.

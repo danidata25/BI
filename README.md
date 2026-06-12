@@ -92,6 +92,7 @@ erDiagram
         string sk_order PK
         int order_item_id PK
         int sk_date_purchase FK
+        int sk_date_carrier FK
         int sk_date_delivered FK
         int sk_date_estimated_delivery FK
         int sk_customer FK
@@ -103,6 +104,8 @@ erDiagram
         decimal gross_profit
         decimal unit_cost
         int delivery_days
+        int seller_handling_days
+        int carrier_transit_days
         int is_on_time
         int review_score
     }
@@ -122,6 +125,7 @@ erDiagram
     }
 
     fact_order_item }o--|| dim_date : "purchase date"
+    fact_order_item }o--o| dim_date : "carrier handoff date"
     fact_order_item }o--o| dim_date : "delivered date"
     fact_order_item }o--o| dim_date : "estimated date"
     fact_order_item }o--|| dim_customer : ""
@@ -210,6 +214,7 @@ The most detailed fact table. Each row represents a single product sold within a
 | `sk_order` | 🟢 Source | Order ID from the source system |
 | `order_item_id` | 🟢 Source | Line number within the order (1, 2, 3… if the order has multiple products) |
 | `sk_date_purchase` | 🔵 Derived | FK → dim_date — the date the customer placed the order |
+| `sk_date_carrier` | 🔵 Derived | FK → dim_date — the date the seller handed the package to the carrier (the seller→carrier handoff, nullable) |
 | `sk_date_delivered` | 🔵 Derived | FK → dim_date — the date the package was actually delivered (nullable) |
 | `sk_date_estimated_delivery` | 🔵 Derived | FK → dim_date — the delivery date that was promised to the customer (nullable) |
 | `sk_customer` | 🔵 Derived | FK → dim_customer |
@@ -220,7 +225,9 @@ The most detailed fact table. Each row represents a single product sold within a
 | `revenue` | 🔵 Derived | `price + freight_value` — total money collected from the customer for this line |
 | `unit_cost` | 🔵 Derived | The estimated cost to the seller for this product (`price × 0.60`) |
 | `gross_profit` | 🔵 Derived | `price − unit_cost` — profit on the product before operating expenses |
-| `delivery_days` | 🔵 Derived | `delivered_date − purchase_date` in calendar days — how long shipping actually took |
+| `delivery_days` | 🔵 Derived | `delivered_date − purchase_date` in calendar days — total shipping time |
+| `seller_handling_days` | 🔵 Derived | `carrier_handoff − purchase_date` — the **seller-owned** phase (prep, pack, post), nullable |
+| `carrier_transit_days` | 🔵 Derived | `delivered_date − carrier_handoff` — the **carrier-owned** phase (collection, transit, last-mile), nullable |
 | `is_on_time` | 🔵 Derived | `1` if the package arrived on or before the estimated date, `0` if late, `NULL` if not yet delivered |
 | `review_score` | 🟢 Source | Customer satisfaction score for the order (1 = worst, 5 = best) |
 
@@ -324,7 +331,7 @@ Takes about 1–2 minutes. Prints a row count per table when done.
 ![Olist Sellers Analysis](assets/Final_First_report.png)
 
 ### Purpose
-A single-page Power BI report built for Olist's **seller operations team**. It answers one tight, actionable question: *what operational lever actually moves customer satisfaction, and which tiers/categories carry the revenue at risk?* The report supports tier-level revenue prioritisation, category-level intervention, and — most importantly — pinpoints **delivery speed as the satisfaction driver** management can directly control.
+A single-page Power BI report built for Olist's **seller operations team**. It answers one tight, actionable question: *why are customers dissatisfied, and who owns the fix?* Every visual converges on delivery performance — the report shows that **slow delivery drives bad reviews**, then decomposes that delivery time to pinpoint **the carrier, not the seller**, as the party that owns the problem.
 
 ### Structure
 One page, one global filter, and three coordinated visuals where the matrix drives the rest:
@@ -332,16 +339,16 @@ One page, one global filter, and three coordinated visuals where the matrix driv
 | Element | Role |
 |---|---|
 | **Filter** — *Time Period* | Global slicer that cascades through every visual on the page. |
-| **Category Stats** (hierarchical matrix) | Primary analytical view **and the page's category filter**: clicking a *Product Category* row cross-filters the box plot (and other visuals) to that category — replacing a separate category slicer. Rows expand from *Product Category* → *Seller Tier*, columns show Gross Profit Margin %, Revenue (BRL), **% Negative Reviews (≤2★)**, **% Positive Reviews (≥4★)**, and On-Time Fulfillment Rate. Lets a manager see whether a category's profitability is driven by Bronze volume, Silver breadth, or Gold premium — and read satisfaction without averaging an ordinal scale. |
-| **Revenue Share by Seller Tier** (pie) | Part-to-whole split of total revenue across Bronze / Silver / Gold. Shows that Silver sellers (~51%) carry the majority of platform revenue — so a satisfaction problem in the Silver tier is a *revenue* problem, not a long-tail one. |
-| **Delivery Days Distribution by Review Score** (box plot) | Distribution of delivery time (ratio-scale) across review scores 1–5 (ordinal), colored by tier. This is the report's headline visual: it isolates *delivery speed* as a controllable driver of satisfaction. Replaced an earlier scatter that incorrectly treated the ordinal review score as a continuous axis (see *Design evolution* below). |
+| **Category Stats** (hierarchical matrix) | Primary analytical view **and the page's category filter**: clicking a *Product Category* row cross-filters the other visuals to that category — replacing a separate category slicer. Columns show Revenue (BRL), seller-count share, **% Positive Reviews (≥4★)**, On-Time Fulfillment Rate, and **average delivery days**. Lets a manager line up revenue, satisfaction, and fulfilment speed for every category at a glance. |
+| **Delivery Time Breakdown by Category** (stacked column) | Average delivery days per category, split into the **seller-handling** and **carrier-transit** phases. Replaced an earlier revenue pie. The dark carrier segment dominates every bar — making the accountability split impossible to miss. |
+| **Delivery Days Distribution by Review Score** (box plot) | Distribution of delivery time (ratio-scale) across review scores 1–5 (ordinal), colored by tier. The report's headline visual: it isolates *delivery speed* as a controllable driver of satisfaction. Replaced an earlier scatter that incorrectly treated the ordinal review score as a continuous axis (see *Design evolution* below). |
 
 ### Design principles
-- **One theme, one page** — every visual is about *sellers*. No mixed messaging.
+- **One theme, one page** — every visual is about *delivery performance*. No mixed messaging.
 - **Filter-first layout** — the Time Period slicer sits top-left where managers look first; category filtering is driven by clicking matrix rows.
-- **Consistent tier color coding** — Bronze / Silver / Gold use the same palette across the tier visuals, so the eye can chain insights between them.
+- **Consistent phase color coding** — seller-handling and carrier-transit use the same two colors across the breakdown chart, and tier colors are consistent in the box plot.
 - **Hierarchical drill in the matrix** — keeps the visual count low without losing depth.
-- **Scale-correct measures** — review score is treated as **ordinal**: the matrix reports *% Negative Reviews (≤2★)* and *% Positive Reviews (≥4★)* — frequency-based ratios — instead of an arithmetic mean of 1–5 scores. (Score 3 is treated as neutral and sits in neither bucket, so the two shares plus neutral sum to 100%.)
+- **Scale-correct measures** — review score is treated as **ordinal**: the matrix reports *% Positive Reviews (≥4★)*, a frequency-based ratio, instead of an arithmetic mean of 1–5 scores. `delivery_days` is ratio-scale, so its mean *is* valid and is shown directly.
 
 ### Decisions supported
 - **Tier promotion / demotion** — spot Silver sellers with Gold-tier metrics, or Gold sellers with Bronze-tier reviews.
@@ -350,14 +357,14 @@ One page, one global filter, and three coordinated visuals where the matrix driv
 
 ### What the report reveals
 - **Delivery speed drives satisfaction — the headline finding.** In the box plot, median delivery time falls monotonically as review score rises: ~19 days at score 1 down to ~10 days at score 5. Slow fulfilment, not price or assortment, is the strongest controllable lever on customer satisfaction — a direct, operational call to action.
-- **The revenue at risk sits in the Silver tier.** The pie shows Silver sellers generate ~51% of revenue (Gold ~29%, Bronze ~20%). Combined with the delivery finding, a fulfilment fix targeted at Silver sellers protects the largest revenue block.
-- **Satisfaction varies far more than margin.** % Positive ranges from ~0.73 (Home & Garden) to ~0.83 (Books & Media), and % Negative inversely — a real, actionable signal the flat simulated-margin column (≈0.32–0.35) cannot provide.
+- **And it's the *carrier*, not the seller, who owns the problem.** Splitting total delivery time into its two ownership phases — *seller handling* (purchase → carrier handoff) and *carrier transit* (handoff → customer) — shows the carrier phase dominates both the absolute time and the variance tied to satisfaction. Across the 1★→5★ range, seller handling shrinks 4.2 → 2.4 days (Δ 1.8) while carrier transit shrinks 14.5 → 7.3 days (Δ 7.2) — so **~80% of the delivery-time gap between angry and happy customers is carrier-side**. The lever is logistics coverage and last-mile speed, not seller onboarding.
+- **The breakdown chart proves the split holds in *every* category.** The stacked column shows the carrier-transit segment dominating the seller-handling base across all ten categories — Home & Garden and Electronics are worst (~12.5 avg days), Food & Drinks best (~9.7). Because the pattern is consistent across categories, *product mix* is ruled out as the cause: this is a platform-wide logistics issue, not a few bad categories.
+- **Satisfaction varies far more than fulfilment-rate.** % Positive ranges from ~0.73 (Home & Garden) to ~0.83 (Books & Media) while the on-time rate sits at a flat ~0.90 for almost every category — confirming that *how long* delivery takes, not just whether it beats the (padded) estimate, is what customers actually feel.
 
 ### Known limitations (be honest at the defense)
-- **Gross margin is simulated.** `unit_cost = list_price × 0.60` in the DW (fixed 40% assumption). Cross-category margin differences of 1–2 points are price-dispersion artifacts, not real cost differentiation.
-- **No geographic dimension** in this report — regional analysis lives in Report B by design, but the seller team will sometimes ask "where are these sellers?" and the report has to defer.
-- **Pie vs. bar trade-off.** The tier visual is a pie for an immediate part-to-whole read. With only three slices this is defensible, but a bar chart would allow more precise comparison; the choice prioritises the "Silver dominates" message over exact value reading.
-- **Delivery → satisfaction is correlational.** The box plot shows a strong monotonic association, not a proven cause; confounders (category, season) are not controlled in this single view.
+- **Gross margin is simulated.** `unit_cost = list_price × 0.60` in the DW (fixed 40% assumption) — which is why margin was dropped from the final matrix in favour of delivery and satisfaction metrics that are grounded in real source data.
+- **No geographic dimension** in this report — regional analysis lives in Report B by design, but the seller team will sometimes ask "where are these sellers?" and the report has to defer (and a carrier problem is very likely regional).
+- **Delivery → satisfaction is correlational.** The box plot shows a strong monotonic association, not a proven cause; confounders (category, season) are not fully controlled. The category breakdown rules out *product mix*, and temporal order (delivery precedes the review) rules out reverse causation — but only an experiment or multivariate model would confirm causation.
 
 ### Design evolution — measurement scales & the "(Blank)" fix
 
@@ -381,4 +388,7 @@ The first box plot showed **six** categories on the review-score axis: `(Blank),
 
 **3 — From *revenue* to *delivery days* (a sharper business question).**
 The box plot first compared **revenue** across review scores — valid, but it only restated a known correlation (happy customers spend a bit more). Swapping the Y-axis to **delivery days** reframes the same chart around a lever management actually controls: the monotonic drop from ~19 days (score 1) to ~10 days (score 5) makes *fulfilment speed* the headline driver of satisfaction. Same measurement-scale logic (ratio fact across ordinal dimension), far more actionable insight.
+
+**4 — Page-level pivot: from "who earns" to "who's accountable".**
+The companion visual started as a **revenue-share pie** (Bronze/Silver/Gold) and the matrix carried a simulated *Gross Profit Margin %*. Both were dropped: the pie answered a different question than the delivery story, and the margin column was simulated (fixed 40% cost), so it added noise rather than signal. They were replaced by the **Delivery Time Breakdown by Category** stacked column (seller vs carrier phases) and an *average delivery days* matrix column — unifying the whole page around one defensible, source-grounded theme: **delivery performance and who owns it.**
 
