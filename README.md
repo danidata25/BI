@@ -331,7 +331,9 @@ Takes about 1–2 minutes. Prints a row count per table when done.
 ![Olist Sellers Analysis](assets/Final_First_report.png)
 
 ### Purpose
-A single-page Power BI report built for Olist's **seller operations team**. It answers one tight, actionable question: *why are customers dissatisfied, and who owns the fix?* Every visual converges on delivery performance — the report shows that **slow delivery drives bad reviews**, then decomposes that delivery time to pinpoint **the carrier, not the seller**, as the party that owns the problem.
+A single-page Power BI report built for Olist's **seller operations team**. It answers one tight, actionable question: *where should Olist focus fulfillment improvement in order to reduce customer dissatisfaction?*
+
+Every visual converges on delivery performance. The report first shows that lower review scores are associated with longer delivery times. It then decomposes total delivery time into **seller handling time** and **carrier transit time**, helping identify whether the main operational bottleneck is created before carrier handoff or during carrier transit. In the current analysis, the larger share of delivery time appears to come from carrier transit, suggesting that the primary improvement focus should be **logistics-partner performance** rather than seller preparation.
 
 ### Structure
 One page, one global filter, and three coordinated visuals where the matrix drives the rest:
