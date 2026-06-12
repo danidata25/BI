@@ -304,3 +304,27 @@ Change:
   interactions -> set the box plot interaction to Filter). This reduces visual
   clutter and makes the matrix the single analytical entry point for category
   drill-down.
+
+
+──────────────────────────────────────────────────────
+CHANGE #2 — Box plot Y-axis: revenue -> delivery_days; tier bar -> revenue pie
+──────────────────────────────────────────────────────
+Date: June 12, 2026
+Where: Report A (final image = assets/Final_First_report.png)
+
+Change:
+  (a) Box plot reframed from "Revenue Distribution by Review Score" to
+      "Delivery Days Distribution by Review Score". Both are valid (ratio-scale
+      fact across an ordinal dimension), but delivery_days answers a tighter,
+      controllable business question. Result: median delivery time drops
+      monotonically ~19 days (score 1) -> ~10 days (score 5), making fulfilment
+      speed the headline driver of satisfaction.
+  (b) Tier visual changed from a revenue/gross-profit bar chart to a
+      "Revenue by seller_tier" pie: Silver ~51% (8.11M), Gold ~29% (4.58M),
+      Bronze ~20% (3.16M).
+
+Honest caveats (for the defense):
+  - Pie with 3 slices is acceptable for part-to-whole, but a bar chart reads more
+    precisely; the pie prioritises the "Silver dominates" message.
+  - Delivery -> satisfaction is a strong correlation, not proven causation
+    (category/season confounders not controlled in this single view).

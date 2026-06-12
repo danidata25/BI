@@ -324,7 +324,7 @@ Takes about 1–2 minutes. Prints a row count per table when done.
 ![Olist Sellers Analysis](assets/Final_First_report.png)
 
 ### Purpose
-A single-page Power BI report built for Olist's **seller operations team**. It answers one core question: *which seller tiers and product categories are healthy, and which need intervention?* The report is designed to support tier-promotion / demotion decisions, category-level investment choices, and early identification of high-revenue sellers whose service quality is dragging the platform's reputation down.
+A single-page Power BI report built for Olist's **seller operations team**. It answers one tight, actionable question: *what operational lever actually moves customer satisfaction, and which tiers/categories carry the revenue at risk?* The report supports tier-level revenue prioritisation, category-level intervention, and — most importantly — pinpoints **delivery speed as the satisfaction driver** management can directly control.
 
 ### Structure
 One page, one global filter, and three coordinated visuals where the matrix drives the rest:
@@ -333,8 +333,8 @@ One page, one global filter, and three coordinated visuals where the matrix driv
 |---|---|
 | **Filter** — *Time Period* | Global slicer that cascades through every visual on the page. |
 | **Category Stats** (hierarchical matrix) | Primary analytical view **and the page's category filter**: clicking a *Product Category* row cross-filters the box plot (and other visuals) to that category — replacing a separate category slicer. Rows expand from *Product Category* → *Seller Tier*, columns show Gross Profit Margin %, Revenue (BRL), **% Negative Reviews (≤2★)**, **% Positive Reviews (≥4★)**, and On-Time Fulfillment Rate. Lets a manager see whether a category's profitability is driven by Bronze volume, Silver breadth, or Gold premium — and read satisfaction without averaging an ordinal scale. |
-| **Average Revenue & Gross Profit by Tier** (bar chart) | Quick-glance comparison of the three tiers, showing both revenue and gross profit side-by-side to expose margin compression. |
-| **Revenue Distribution by Review Score** (box plot) | Distribution of order-item revenue across review scores 1–5, colored by tier. Replaced an earlier scatter that incorrectly treated the ordinal review score as a continuous axis (see *Design evolution* below). |
+| **Revenue Share by Seller Tier** (pie) | Part-to-whole split of total revenue across Bronze / Silver / Gold. Shows that Silver sellers (~51%) carry the majority of platform revenue — so a satisfaction problem in the Silver tier is a *revenue* problem, not a long-tail one. |
+| **Delivery Days Distribution by Review Score** (box plot) | Distribution of delivery time (ratio-scale) across review scores 1–5 (ordinal), colored by tier. This is the report's headline visual: it isolates *delivery speed* as a controllable driver of satisfaction. Replaced an earlier scatter that incorrectly treated the ordinal review score as a continuous axis (see *Design evolution* below). |
 
 ### Design principles
 - **One theme, one page** — every visual is about *sellers*. No mixed messaging.
@@ -349,23 +349,24 @@ One page, one global filter, and three coordinated visuals where the matrix driv
 - **High-risk category flagging** — clicking a category row in the matrix filters the box plot, exposing categories whose revenue concentrates in low review scores — sellers who generate revenue while damaging the platform's marketplace reputation.
 
 ### What the report reveals
-- **Revenue concentrates in satisfied customers.** The box plot's median revenue rises monotonically from review score 1 to 5, with score 5 carrying a visibly higher and wider revenue distribution. Bad reviews are not just a service problem — they correlate with the *lowest-value* order items, so fixing satisfaction protects the most revenue at the top of the scale.
-- **Margins are flat across categories (≈0.32–0.35).** Because gross margin is simulated from a fixed cost ratio, category differences are price-dispersion artifacts, not real cost edges — the matrix correctly steers attention to *satisfaction* and *fulfillment* as the true differentiators.
-- **Satisfaction varies far more than margin.** % Positive ranges from ~0.73 (Home & Garden) to ~0.83 (Books & Media), and % Negative inversely — a real, actionable signal the flat margin column cannot provide.
+- **Delivery speed drives satisfaction — the headline finding.** In the box plot, median delivery time falls monotonically as review score rises: ~19 days at score 1 down to ~10 days at score 5. Slow fulfilment, not price or assortment, is the strongest controllable lever on customer satisfaction — a direct, operational call to action.
+- **The revenue at risk sits in the Silver tier.** The pie shows Silver sellers generate ~51% of revenue (Gold ~29%, Bronze ~20%). Combined with the delivery finding, a fulfilment fix targeted at Silver sellers protects the largest revenue block.
+- **Satisfaction varies far more than margin.** % Positive ranges from ~0.73 (Home & Garden) to ~0.83 (Books & Media), and % Negative inversely — a real, actionable signal the flat simulated-margin column (≈0.32–0.35) cannot provide.
 
 ### Known limitations (be honest at the defense)
 - **Gross margin is simulated.** `unit_cost = list_price × 0.60` in the DW (fixed 40% assumption). Cross-category margin differences of 1–2 points are price-dispersion artifacts, not real cost differentiation.
 - **No geographic dimension** in this report — regional analysis lives in Report B by design, but the seller team will sometimes ask "where are these sellers?" and the report has to defer.
-- **Tier counts not shown** — the bar chart tells you *average performance per tier*, not *how many sellers are in each tier*. A "Sellers per Tier" KPI card is on the TODO list to close this gap.
+- **Pie vs. bar trade-off.** The tier visual is a pie for an immediate part-to-whole read. With only three slices this is defensible, but a bar chart would allow more precise comparison; the choice prioritises the "Silver dominates" message over exact value reading.
+- **Delivery → satisfaction is correlational.** The box plot shows a strong monotonic association, not a proven cause; confounders (category, season) are not controlled in this single view.
 
 ### Design evolution — measurement scales & the "(Blank)" fix
 
-Part of this project is showing *how the visuals improved*, not just the final state. Visual 3 went through two corrections worth documenting.
+Part of this project is showing *how the visuals improved*, not just the final state. Visual 3 went through three steps worth documenting.
 
 **1 — From scatter to box plot (a measurement-scale fix).**
 The first version plotted *review score* (X) against *revenue* (Y) as a **scatter** ("relationship") chart. That is formally incorrect: a scatter relationship chart needs **two ratio-scale fact variables**, but `review_score` is **ordinal** — its order is meaningful, yet the gaps (3→4 vs 4→5) are not quantitatively equal. The old title also referenced the *average* of review scores, and the mean is only valid for interval/ratio data; ordinal data calls for median, mode, rank, percentiles, or a distribution view.
 
-The redesign uses a **box-and-whisker** chart — the course-correct way to compare the **distribution of a ratio-scale fact (revenue)** across an **ordinal dimension (review score)**, colored by seller tier. (Power BI ships no native box plot, so the certified *Box and Whisker chart* by MAQ Software was imported via **Get more visuals**.)
+The redesign uses a **box-and-whisker** chart — the course-correct way to compare the **distribution of a ratio-scale fact** across an **ordinal dimension (review score)**, colored by seller tier. (Power BI ships no native box plot, so the certified *Box and Whisker chart* by MAQ Software was imported via **Get more visuals**.)
 
 > The original scatter is preserved at [assets/report_a_v3_scatter.png](assets/report_a_v3_scatter.png) as a record of the correction.
 
@@ -377,4 +378,7 @@ The first box plot showed **six** categories on the review-score axis: `(Blank),
 
 - **Root cause:** `review_score` is nullable (`SMALLINT`, no `NOT NULL`). In `etl_load_dw.py`, reviews are attached with a **left join** (`fact.merge(rev, on="order_id", how="left")`). The Olist source has reviews for only ~99,224 of 112,650 order items, so every item from an un-reviewed order gets `review_score = NULL`. Power BI buckets all NULLs into one `(Blank)` category. It is **not a data error** — it faithfully represents *"items that never received a customer review."*
 - **Fix:** a **visual-level filter** on `review_score` unchecks `(Blank)` (keeps 1–5). This removes the noise from this chart only, leaves the NULLs available to other visuals, and is fully reversible — so the warehouse is never altered for a presentation concern.
+
+**3 — From *revenue* to *delivery days* (a sharper business question).**
+The box plot first compared **revenue** across review scores — valid, but it only restated a known correlation (happy customers spend a bit more). Swapping the Y-axis to **delivery days** reframes the same chart around a lever management actually controls: the monotonic drop from ~19 days (score 1) to ~10 days (score 5) makes *fulfilment speed* the headline driver of satisfaction. Same measurement-scale logic (ratio fact across ordinal dimension), far more actionable insight.
 
