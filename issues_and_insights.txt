@@ -180,3 +180,127 @@ Data Boundary Note (report disclosure required):
   an incomplete final period in the dataset rather than an actual revenue drop.
   The dataset covers orders through November 2018 with the last months only
   partially populated. This artifact should not be interpreted as a business trend.
+
+
+────────────────────────────────────────────────────────────
+ISSUE #3 — Scatter chart redesigned to a box plot (measurement-scale fix)
+────────────────────────────────────────────────────────────
+Date discovered: June 12, 2026
+Where: Report A, Visual 3 (was "Average reviews over total revenue" scatter)
+
+Problem (why the old design was formally wrong):
+  The original visual was a SCATTER chart with:
+    X = review_score (1-5), Y = revenue (BRL), one dot per seller.
+  Per the course, a scatter "relationship" chart requires BOTH axes to be
+  ratio-scale FACT variables. Revenue is ratio-scale (true zero, meaningful
+  ratios), but review_score is ORDINAL — its order is meaningful but the gaps
+  (3->4 vs 4->5) are not quantitatively equal. Plotting an ordinal variable on
+  a continuous axis treats it as if it were quantitative, which is incorrect.
+  The title also referred to the AVERAGE (mean) of review scores; mean is only
+  valid for interval/ratio scales. Ordinal data should use median, mode, rank,
+  percentiles, or a frequency/distribution view.
+
+Decision:
+  Replaced the scatter with a BOX-AND-WHISKER chart:
+    X = review_score (ordinal dimension, categories 1-5)
+    Y = revenue (ratio-scale fact)
+    Color = seller_tier (Bronze/Silver/Gold)
+  A box plot is course-correct: it compares the DISTRIBUTION of a ratio-scale
+  fact variable across a nominal/ordinal dimension. No box-and-whisker visual
+  ships natively in Power BI, so the certified "Box and Whisker chart" (MAQ
+  Software) was imported via Get more visuals.
+
+Old visual kept as a learning artifact: assets/report_a_v3_scatter.png
+
+
+────────────────────────────────────────────────────────────
+ISSUE #4 — Box plot showed a "(Blank)" category on the review_score axis
+────────────────────────────────────────────────────────────
+Date discovered: June 12, 2026
+Where: Report A, Visual 3 (box plot)
+Screenshot: assets/report_a_v3_blank_issue.png
+
+Problem:
+  The review_score axis displayed six categories: (Blank), 1, 2, 3, 4, 5.
+  The (Blank) box represented order items with no review score.
+
+Root cause:
+  review_score is nullable (olist_dw_schema.sql: "review_score SMALLINT", no
+  NOT NULL). In etl_load_dw.py (build_fact_order_item) reviews are attached
+  with a LEFT join:
+      fact = fact.merge(rev, on="order_id", how="left")
+  The Olist source only has a review row for orders that were actually reviewed
+  (~99,224 reviews vs 112,650 order items). Every order item belonging to an
+  un-reviewed order therefore gets review_score = NULL. Power BI groups all
+  NULLs into a single "(Blank)" category on the axis. It is NOT a data error —
+  it correctly represents "items that never received a customer review."
+
+Fix:
+  Applied a VISUAL-LEVEL filter on review_score: unchecked "(Blank)" (kept
+  1-5). Equivalent to an Advanced filter "review_score is not blank".
+
+Why a visual filter and not an ETL change:
+  The NULLs are legitimate (unreviewed items) and other visuals may need them.
+  Filtering at the visual scope removes the noise from THIS chart only, is fully
+  reversible, and does not alter the warehouse.
+
+
+──────────────────────────────────────────────────────
+ISSUE #5 — "Average Review Score" in Category Stats matrix (ordinal mean)
+──────────────────────────────────────────────────────
+Date discovered: June 12, 2026
+Where: Report A, Category Stats matrix (column "Average Review Score")
+
+Problem:
+  The matrix reported the arithmetic MEAN of review_score per category/tier.
+  review_score is ORDINAL: order is meaningful, but the gaps are not
+  quantitatively equal (3->4 is not assumed equal to 4->5). The course allows
+  mean only for interval/ratio scales; ordinal data should use median, mode,
+  rank, percentiles, or frequency/distribution.
+
+Fix:
+  Replaced "Average Review Score" with a frequency-based ratio measure,
+  % Positive Reviews (share of items scored 4 or 5):
+
+    % Positive Reviews =
+    DIVIDE(
+        CALCULATE(COUNTROWS(fact_order_item), fact_order_item[review_score] >= 4),
+        CALCULATE(COUNTROWS(fact_order_item), NOT ISBLANK(fact_order_item[review_score]))
+    )
+
+  This is course-valid for ordinal data (a frequency proportion), is expressed
+  as a ratio (suitable as a KPI), and is robust to the unequal-gap problem.
+  (Median Review Score = MEDIAN(fact_order_item[review_score]) was considered as
+  an ordinal central-tendency alternative.)
+
+  A mirror measure, % Negative Reviews (share of items scored 1 or 2), was added
+  alongside it for a balanced satisfaction picture:
+
+    % Negative Reviews =
+    DIVIDE(
+        CALCULATE(COUNTROWS(fact_order_item), fact_order_item[review_score] <= 2),
+        CALCULATE(COUNTROWS(fact_order_item), NOT ISBLANK(fact_order_item[review_score]))
+    )
+
+  Score 3 is treated as neutral and excluded from both buckets, so
+  % Positive + % Negative + neutral = 100%. Both are now columns in the matrix.
+
+  Final-report insight (Final_First_report.png): % Positive ranges ~0.73
+  (Home & Garden) to ~0.83 (Books & Media) while gross margin is nearly flat
+  (~0.32-0.35), so satisfaction -- not margin -- is the real category
+  differentiator. The box plot confirms median revenue rises monotonically
+  with review score (score 5 has the highest, widest revenue distribution).
+
+
+──────────────────────────────────────────────────────
+CHANGE #1 — Item Category slicer replaced by matrix cross-filtering
+──────────────────────────────────────────────────────
+Date: June 12, 2026
+Where: Report A
+
+Change:
+  Removed the standalone "Item Category" slicer. Category filtering is now driven
+  by clicking a Product Category row in the Category Stats matrix (Edit
+  interactions -> set the box plot interaction to Filter). This reduces visual
+  clutter and makes the matrix the single analytical entry point for category
+  drill-down.

@@ -321,34 +321,60 @@ Takes about 1–2 minutes. Prints a row count per table when done.
 
 ## Report A — Olist Sellers Analysis
 
-![Olist Sellers Analysis](assets/first_report.png)
+![Olist Sellers Analysis](assets/Final_First_report.png)
 
 ### Purpose
 A single-page Power BI report built for Olist's **seller operations team**. It answers one core question: *which seller tiers and product categories are healthy, and which need intervention?* The report is designed to support tier-promotion / demotion decisions, category-level investment choices, and early identification of high-revenue sellers whose service quality is dragging the platform's reputation down.
 
 ### Structure
-One page, two filters, three coordinated visuals:
+One page, one global filter, and three coordinated visuals where the matrix drives the rest:
 
 | Element | Role |
 |---|---|
-| **Filters** — *Time Period*, *Item Category* | Global slicers that cascade through every visual on the page. |
-| **Category Stats** (hierarchical matrix) | Primary analytical view. Rows expand from *Product Category* → *Seller Tier*, columns show Gross Profit Margin %, Revenue (BRL), Average Review Score, and On-Time Fulfillment Rate. Lets a manager see whether a category's profitability is driven by Bronze volume, Silver breadth, or Gold premium. |
+| **Filter** — *Time Period* | Global slicer that cascades through every visual on the page. |
+| **Category Stats** (hierarchical matrix) | Primary analytical view **and the page's category filter**: clicking a *Product Category* row cross-filters the box plot (and other visuals) to that category — replacing a separate category slicer. Rows expand from *Product Category* → *Seller Tier*, columns show Gross Profit Margin %, Revenue (BRL), **% Negative Reviews (≤2★)**, **% Positive Reviews (≥4★)**, and On-Time Fulfillment Rate. Lets a manager see whether a category's profitability is driven by Bronze volume, Silver breadth, or Gold premium — and read satisfaction without averaging an ordinal scale. |
 | **Average Revenue & Gross Profit by Tier** (bar chart) | Quick-glance comparison of the three tiers, showing both revenue and gross profit side-by-side to expose margin compression. |
-| **Reviews vs Revenue per Seller** (scatter, log Y) | One dot per seller, X = average review score, Y = total revenue (log scale), colored by tier. Surfaces high-revenue sellers with mediocre satisfaction — the "quietly damaging" segment that needs intervention before bad reviews compound. |
+| **Revenue Distribution by Review Score** (box plot) | Distribution of order-item revenue across review scores 1–5, colored by tier. Replaced an earlier scatter that incorrectly treated the ordinal review score as a continuous axis (see *Design evolution* below). |
 
 ### Design principles
 - **One theme, one page** — every visual is about *sellers*. No mixed messaging.
-- **Filter-first layout** — slicers sit top-left where managers look first.
-- **Consistent tier color coding** — Bronze / Silver / Gold use the same palette across both tier visuals, so the eye can chain insights between them.
+- **Filter-first layout** — the Time Period slicer sits top-left where managers look first; category filtering is driven by clicking matrix rows.
+- **Consistent tier color coding** — Bronze / Silver / Gold use the same palette across the tier visuals, so the eye can chain insights between them.
 - **Hierarchical drill in the matrix** — keeps the visual count low without losing depth.
-- **Log Y-axis on the scatter** — keeps Bronze sellers visible alongside Gold sellers that earn 1000× more revenue.
+- **Scale-correct measures** — review score is treated as **ordinal**: the matrix reports *% Negative Reviews (≤2★)* and *% Positive Reviews (≥4★)* — frequency-based ratios — instead of an arithmetic mean of 1–5 scores. (Score 3 is treated as neutral and sits in neither bucket, so the two shares plus neutral sum to 100%.)
 
 ### Decisions supported
 - **Tier promotion / demotion** — spot Silver sellers with Gold-tier metrics, or Gold sellers with Bronze-tier reviews.
 - **Category investment** — identify categories where margin is healthy *and* satisfaction is strong (expand) vs. high-revenue / low-satisfaction categories (operational fix).
-- **High-risk seller flagging** — the scatter's top-right-but-low-score quadrant lists sellers who generate revenue while damaging the platform's marketplace reputation.
+- **High-risk category flagging** — clicking a category row in the matrix filters the box plot, exposing categories whose revenue concentrates in low review scores — sellers who generate revenue while damaging the platform's marketplace reputation.
+
+### What the report reveals
+- **Revenue concentrates in satisfied customers.** The box plot's median revenue rises monotonically from review score 1 to 5, with score 5 carrying a visibly higher and wider revenue distribution. Bad reviews are not just a service problem — they correlate with the *lowest-value* order items, so fixing satisfaction protects the most revenue at the top of the scale.
+- **Margins are flat across categories (≈0.32–0.35).** Because gross margin is simulated from a fixed cost ratio, category differences are price-dispersion artifacts, not real cost edges — the matrix correctly steers attention to *satisfaction* and *fulfillment* as the true differentiators.
+- **Satisfaction varies far more than margin.** % Positive ranges from ~0.73 (Home & Garden) to ~0.83 (Books & Media), and % Negative inversely — a real, actionable signal the flat margin column cannot provide.
 
 ### Known limitations (be honest at the defense)
 - **Gross margin is simulated.** `unit_cost = list_price × 0.60` in the DW (fixed 40% assumption). Cross-category margin differences of 1–2 points are price-dispersion artifacts, not real cost differentiation.
 - **No geographic dimension** in this report — regional analysis lives in Report B by design, but the seller team will sometimes ask "where are these sellers?" and the report has to defer.
 - **Tier counts not shown** — the bar chart tells you *average performance per tier*, not *how many sellers are in each tier*. A "Sellers per Tier" KPI card is on the TODO list to close this gap.
+
+### Design evolution — measurement scales & the "(Blank)" fix
+
+Part of this project is showing *how the visuals improved*, not just the final state. Visual 3 went through two corrections worth documenting.
+
+**1 — From scatter to box plot (a measurement-scale fix).**
+The first version plotted *review score* (X) against *revenue* (Y) as a **scatter** ("relationship") chart. That is formally incorrect: a scatter relationship chart needs **two ratio-scale fact variables**, but `review_score` is **ordinal** — its order is meaningful, yet the gaps (3→4 vs 4→5) are not quantitatively equal. The old title also referenced the *average* of review scores, and the mean is only valid for interval/ratio data; ordinal data calls for median, mode, rank, percentiles, or a distribution view.
+
+The redesign uses a **box-and-whisker** chart — the course-correct way to compare the **distribution of a ratio-scale fact (revenue)** across an **ordinal dimension (review score)**, colored by seller tier. (Power BI ships no native box plot, so the certified *Box and Whisker chart* by MAQ Software was imported via **Get more visuals**.)
+
+> The original scatter is preserved at [assets/report_a_v3_scatter.png](assets/report_a_v3_scatter.png) as a record of the correction.
+
+**2 — Why a "(Blank)" category appeared, and how it was removed.**
+
+![Box plot showing the (Blank) review-score category](assets/report_a_v3_blank_issue.png)
+
+The first box plot showed **six** categories on the review-score axis: `(Blank), 1, 2, 3, 4, 5`. The `(Blank)` box is **order items with no review score**.
+
+- **Root cause:** `review_score` is nullable (`SMALLINT`, no `NOT NULL`). In `etl_load_dw.py`, reviews are attached with a **left join** (`fact.merge(rev, on="order_id", how="left")`). The Olist source has reviews for only ~99,224 of 112,650 order items, so every item from an un-reviewed order gets `review_score = NULL`. Power BI buckets all NULLs into one `(Blank)` category. It is **not a data error** — it faithfully represents *"items that never received a customer review."*
+- **Fix:** a **visual-level filter** on `review_score` unchecks `(Blank)` (keeps 1–5). This removes the noise from this chart only, leaves the NULLs available to other visuals, and is fully reversible — so the warehouse is never altered for a presentation concern.
+
