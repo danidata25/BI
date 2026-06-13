@@ -4,8 +4,38 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=flat&logo=postgresql&logoColor=white)](https://postgresql.org)
 [![Power BI](https://img.shields.io/badge/Power_BI-F2C811?style=flat&logo=powerbi&logoColor=black)](https://powerbi.microsoft.com)
 [![Pandas](https://img.shields.io/badge/Pandas-3.0-150458?style=flat&logo=pandas&logoColor=white)](https://pandas.pydata.org)
+[![Model](https://img.shields.io/badge/Model-Kimball_Star_Schema-success?style=flat)](#data-model)
+[![Rows](https://img.shields.io/badge/Fact_rows-112%2C650-blue?style=flat)](#the-raw-data)
 
 A full data warehouse and BI project built on the [Olist Brazilian E-Commerce dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) — ~100,000 real orders placed on Brazil's largest online marketplace between 2016 and 2018.
+
+> ### 🎯 The one-sentence story
+> **Slow delivery tracks with unhappy customers — and ~80% of that delivery time lives with the *carrier*, not the seller.** This project builds the warehouse, models the two delivery phases, and turns that finding into a single decision: *fix logistics, not seller onboarding.*
+
+<table>
+<tr>
+<td align="center"><b>~100K</b><br/>real orders</td>
+<td align="center"><b>112,650</b><br/>fact rows</td>
+<td align="center"><b>6 tables</b><br/>4 dims · 2 facts</td>
+<td align="center"><b>19 → 10 days</b><br/>delivery, 1★ vs 5★</td>
+<td align="center"><b>~80%</b><br/>of the gap is carrier-side</td>
+</tr>
+</table>
+
+> **This is not a tutorial clone.** Every visual was re-examined against measurement-scale theory, a real reconciliation bug was caught and proven at the row level, and each design decision is documented with *why the previous version was wrong* — see [Design evolution](#design-evolution--measurement-scales--the-blank-fix).
+
+---
+
+## 🧰 What this project demonstrates
+
+| Competency | Where to see it |
+|---|---|
+| **Dimensional modelling** (Kimball star schema, surrogate keys, grain choice) | [Data Model](#data-model) · two fact grains (atomic + daily aggregate) |
+| **Reproducible ETL** (pandas → PostgreSQL, fixed seed, idempotent reload) | [`etl_load_dw.py`](etl_load_dw.py) · [ETL Pipeline](#etl-pipeline) |
+| **Data integrity instinct** (caught `floor(a)+floor(b)≠floor(a+b)`, proved it at row level, fixed by construction) | [Design evolution · step 5](#design-evolution--measurement-scales--the-blank-fix) |
+| **Measurement-scale literacy** (ordinal vs ratio → right chart, right statistic) | scatter → box-plot redesign in [Design evolution](#design-evolution--measurement-scales--the-blank-fix) |
+| **Honest analytics** (association vs causation, simulated-data disclosure) | [Known limitations](#known-limitations-be-honest-at-the-defense) |
+| **BI storytelling** (one page, one question, coordinated cross-filtering) | [Report A](#report-a--olist-sellers-analysis) |
 
 ---
 
@@ -358,8 +388,11 @@ One page, one global filter, and three coordinated visuals where the matrix driv
 - **High-risk category flagging** — clicking a category row in the matrix filters the box plot, exposing categories whose revenue concentrates in low review scores — sellers who generate revenue while damaging the platform's marketplace reputation.
 
 ### What the report reveals
+
+> 📦 **Headline:** lower review scores are associated with **longer delivery times** — median delivery falls monotonically from **~19 days at 1★ to ~10 days at 5★**. Fulfilment speed is the strongest *controllable* signal on this page — a place to investigate, not yet a proven cause.
+
 - **Lower review scores are associated with longer delivery times — the headline finding.** In the box plot, median delivery time decreases monotonically as review score rises: ~19 days at score 1 down to ~10 days at score 5. This is a strong association that points to fulfilment speed as a promising area to investigate — not a proven cause of dissatisfaction (see *Known limitations*).
-- **Most of the delivery time sits in the *carrier* phase, not the *seller* phase.** Splitting total delivery time into its two ownership phases — *seller handling* (purchase → carrier handoff) and *carrier transit* (handoff → customer) — shows the carrier phase accounts for the larger share of both the absolute time and the spread that tracks with review score. Across the 1★→5★ range, seller handling decreases 4.2 → 2.4 days (Δ 1.8) while carrier transit decreases 14.5 → 7.3 days (Δ 7.2) — so **~80% of the delivery-time difference between low- and high-rated orders is carrier-side**. This suggests fulfilment-improvement effort is better directed at logistics-partner performance than at seller preparation.
+- **Most of the delivery time sits in the *carrier* phase, not the *seller* phase.** Splitting total delivery time into its two ownership phases — *seller handling* (purchase → carrier handoff) and *carrier transit* (handoff → customer) — shows the carrier phase accounts for the larger share of both the absolute time and the spread that tracks with review score. Across the 1★→5★ range, seller handling decreases 4.2 → 2.4 days (Δ 1.8) while carrier transit decreases 15.0 → 7.8 days (Δ 7.2) — so **~80% of the delivery-time difference between low- and high-rated orders is carrier-side**. This suggests fulfilment-improvement effort is better directed at logistics-partner performance than at seller preparation.
 - **The breakdown chart shows the split is consistent across *every* category.** The stacked column shows the carrier-transit segment exceeding the seller-handling base across all ten categories — Home & Garden and Electronics are highest (~12.5 avg days), Food & Drinks lowest (~9.7). Because the pattern is consistent across categories, it is unlikely to be driven by *product mix* alone — it looks like a platform-wide logistics pattern rather than a few outlier categories.
 - **Satisfaction varies far more than fulfilment-rate.** % Positive ranges from ~0.73 (Home & Garden) to ~0.83 (Books & Media) while the on-time rate sits at a flat ~0.90 for almost every category — suggesting that *how long* delivery takes, not just whether it beats the (padded) estimate, may matter more to customers.
 
@@ -393,4 +426,25 @@ The box plot first compared **revenue** across review scores — valid, but it o
 
 **4 — Page-level pivot: from "who earns" to "who's accountable".**
 The companion visual started as a **revenue-share pie** (Bronze/Silver/Gold) and the matrix carried a simulated *Gross Profit Margin %*. Both were dropped: the pie answered a different question than the delivery story, and the margin column was simulated (fixed 40% cost), so it added noise rather than signal. They were replaced by the **Delivery Time Breakdown by Category** stacked column (seller vs carrier phases) and an *average delivery days* matrix column — unifying the whole page around one defensible, source-grounded theme: **delivery performance and who owns it.**
+
+**5 — A reconciliation bug caught by reading the report carefully (`floor(a) + floor(b) ≠ floor(a+b)`).**
+After the breakdown chart went live, the average delivery days shown in the *matrix* (12.01) did **not** match the stacked-bar total of the two phases (11.53) — a ~0.47-day gap in **every** category. Rather than wave it away, I decomposed it at the row level.
+
+Each metric was computed independently from timestamps using pandas `Timedelta.days`, which **floors to whole days**:
+
+```python
+delivery_days        = (delivered - purchase).days     # floored once
+seller_handling_days = (handoff   - purchase).days     # floored
+carrier_transit_days = (delivered - handoff).days      # floored again
+```
+
+As *timedeltas*, `(handoff − purchase) + (delivered − handoff)` equals `(delivered − purchase)` exactly — but **`floor(a) + floor(b) ≤ floor(a + b)`**. Flooring the two sub-phases discards a fractional day from *each*, while the total floors only once. The proof is in the per-row residual `delivery − seller − carrier`, which on all 110,195 fully-delivered rows took **only the values {0, 1}** — 0 in 57,366 rows, 1 in 52,829 — averaging exactly **0.479 days**, which *is* the entire gap. A residual mathematically bounded to {0, 1} is the unmistakable fingerprint of double-flooring; it rules out join fan-out, a unit error, or a second data source.
+
+**Fix** — define the final phase as the *remainder* of the single-floored authoritative total, so the parts reconcile by construction on every row:
+
+```python
+carrier_transit_days = delivery_days - seller_handling_days   # carrier absorbs the sub-day remainder
+```
+
+After re-running the ETL, the count of rows where `seller + carrier ≠ delivery` dropped from **110,195 to 0**. The lesson is a general one for any additive decomposition: **derive the parts so they sum to the authoritative total — never round each part independently and hope they reconcile.** Logged in full as ISSUE #6 in [issues_and_insights.txt](issues_and_insights.txt).
 

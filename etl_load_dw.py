@@ -417,9 +417,10 @@ def build_fact_order_item(
     One row per (order_id, order_item_id).
     revenue              = price + freight_value
     gross_profit         = price - unit_cost
-    delivery_days        = (delivered - purchase).days  (total)
+    delivery_days        = (delivered - purchase).days  (total, authoritative)
     seller_handling_days = (carrier_handoff - purchase).days   (SELLER phase)
-    carrier_transit_days = (delivered - carrier_handoff).days  (CARRIER phase)
+    carrier_transit_days = delivery_days - seller_handling_days (CARRIER phase, remainder)
+                           -> guarantees seller + carrier == delivery_days per row
     is_on_time           = 1 if delivered <= estimated else 0
     review_score         = from order_reviews (first review per order)
     """
@@ -497,11 +498,17 @@ def build_fact_order_item(
 
     fact["seller_handling_days"] = fact.apply(calc_seller_handling, axis=1)
 
-    # carrier_transit_days (carrier handoff -> customer): the CARRIER-owned phase
+    # carrier_transit_days (carrier handoff -> customer): the CARRIER-owned phase.
+    # Defined as the REMAINDER of the authoritative (single-floored) total so that
+    # seller_handling_days + carrier_transit_days == delivery_days on EVERY row.
+    # Computing it independently as (delivered - handoff).days would floor a third
+    # time, and floor(a)+floor(b) <= floor(a+b): the two phases would then under-sum
+    # the total by 0 or 1 day per row (~0.48 days on average, ~48% of orders),
+    # which is exactly why the matrix avg and the stacked-bar total disagreed.
     def calc_carrier_transit(row):
-        if pd.isna(row["order_delivered_customer_date"]) or pd.isna(row["order_delivered_carrier_date"]):
+        if pd.isna(row["delivery_days"]) or pd.isna(row["seller_handling_days"]):
             return None
-        return (row["order_delivered_customer_date"] - row["order_delivered_carrier_date"]).days
+        return row["delivery_days"] - row["seller_handling_days"]
 
     fact["carrier_transit_days"] = fact.apply(calc_carrier_transit, axis=1)
 

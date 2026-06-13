@@ -398,3 +398,58 @@ Why it's better:
 Label nit to fix in PBIX: matrix column shows auto-name "%GT Count of sk_seller"
   and the breakdown legend shows "Average of seller_handling_days / carrier_transit_days".
   Rename in-visual (Seller Share % ; Seller handling / Carrier transit) for polish.
+
+
+──────────────────────────────────────────────────────
+ISSUE #6 — Phases didn't sum to total: the floor(a)+floor(b) trap
+──────────────────────────────────────────────────────
+Date: June 13, 2026
+Where: ETL (etl_load_dw.py), Report A matrix vs breakdown chart
+Found by: noticing avg delivery_days in the Category Stats matrix did NOT equal
+  the stacked bar total (seller_handling + carrier_transit) for the same category.
+
+Symptom:
+  Matrix  AVG(delivery_days)                         = 12.008 days
+  Breakdown  AVG(seller) + AVG(carrier)              = 11.534 days
+  Gap                                                = ~0.47 days, every category.
+
+Root cause (proven at row level, NOT hand-waved):
+  Each phase was computed independently with pandas Timedelta.days, which FLOORS
+  to whole days:
+    delivery_days        = (delivered - purchase).days        # floor #1
+    seller_handling_days = (handoff   - purchase).days        # floor #2
+    carrier_transit_days = (delivered - handoff).days         # floor #3
+  Algebra: (handoff-purchase) + (delivered-handoff) == (delivered-purchase)
+  EXACTLY as timedeltas, BUT floor(a) + floor(b) <= floor(a+b). Flooring the two
+  sub-phases discards the fractional day of EACH, while the total floors only once.
+  Diagnostic on the 110,195 rows with all three non-null:
+    residual = delivery - seller - carrier  took ONLY values {0, 1}
+      residual 0 -> 57,366 rows   |   residual 1 -> 52,829 rows
+    mean residual = 0.4794 days   == the entire same-row gap (0.4794). 
+  A residual bounded to {0,1} is the mathematical FINGERPRINT of double-flooring;
+  it rules out join fan-out, unit errors, or a different source. The NULL/denominator
+  difference (matrix avgs over 110,196 rows, carrier over 110,195) contributed only
+  -0.006 days (~1% of the gap) - negligible.
+
+Fix (one line, exact reconciliation):
+  Define the LAST phase as the remainder of the single-floored authoritative total:
+    carrier_transit_days = delivery_days - seller_handling_days
+  Now seller + carrier == delivery_days on EVERY row (carrier absorbs the sub-day
+  remainder; defensible since carrier transit is the longer, noisier phase).
+  Re-ran ETL (seed=42). Verified: rows where seller+carrier != delivery = 0
+  (was 110,195). avg carrier shifts 8.73 -> 9.21 (it now carries the ~0.48-day
+  remainder); the seller-vs-carrier STORY is unchanged.
+
+Updated phase split by review score (delivered+reviewed items, post-fix):
+    score | seller | carrier | total |    n
+      1   |  4.2   |  15.0   | 19.2  | 12,436
+      2   |  3.5   |  11.9   | 15.3  |  3,662
+      3   |  3.1   |  10.4   | 13.6  |  9,178
+      4   |  2.8   |   9.0   | 11.7  | 21,069
+      5   |  2.4   |   7.8   | 10.2  | 63,023
+
+Lesson: when decomposing a quantity into parts, derive the parts so they SUM to
+  the authoritative total by construction. Never floor/round each part
+  independently and expect them to reconcile. Also: 187 rows have negative
+  seller_handling and 50 negative carrier_transit (Olist timestamp anomalies where
+  handoff predates purchase, min -172d) - a separate data-quality footnote.
