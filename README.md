@@ -1,41 +1,9 @@
-# Olist E-Commerce · Data Warehouse & BI
+# Olist E-Commerce — Data Warehouse & BI
 
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=flat&logo=postgresql&logoColor=white)](https://postgresql.org)
-[![Power BI](https://img.shields.io/badge/Power_BI-F2C811?style=flat&logo=powerbi&logoColor=black)](https://powerbi.microsoft.com)
-[![Pandas](https://img.shields.io/badge/Pandas-3.0-150458?style=flat&logo=pandas&logoColor=white)](https://pandas.pydata.org)
-[![Model](https://img.shields.io/badge/Model-Kimball_Star_Schema-success?style=flat)](#data-model)
-[![Rows](https://img.shields.io/badge/Fact_rows-112%2C650-blue?style=flat)](#the-raw-data)
+A data-warehouse and business-intelligence project on the [Olist Brazilian E-Commerce dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce): ~100,000 orders placed on Brazil's largest online marketplace between 2016 and 2018. The project designs a Kimball star-schema warehouse, populates it with a reproducible Python (pandas) ETL pipeline into PostgreSQL, and builds Power BI reporting and OLAP tools on top.
 
-A full data warehouse and BI project built on the [Olist Brazilian E-Commerce dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) — ~100,000 real orders placed on Brazil's largest online marketplace between 2016 and 2018.
-
-> ### 🎯 The one-sentence story
-> **Slow delivery tracks with unhappy customers — and ~80% of that delivery time lives with the *carrier*, not the seller.** This project builds the warehouse, models the two delivery phases, and turns that finding into a single decision: *fix logistics, not seller onboarding.*
-
-<table>
-<tr>
-<td align="center"><b>~100K</b><br/>real orders</td>
-<td align="center"><b>112,650</b><br/>fact rows</td>
-<td align="center"><b>6 tables</b><br/>4 dims · 2 facts</td>
-<td align="center"><b>19 → 10 days</b><br/>delivery, 1★ vs 5★</td>
-<td align="center"><b>~80%</b><br/>of the gap is carrier-side</td>
-</tr>
-</table>
-
-> **This is not a tutorial clone.** Every visual was re-examined against measurement-scale theory, a real reconciliation bug was caught and proven at the row level, and each design decision is documented with *why the previous version was wrong* — see [Design evolution](#design-evolution--measurement-scales--the-blank-fix).
-
----
-
-## 🧰 What this project demonstrates
-
-| Competency | Where to see it |
-|---|---|
-| **Dimensional modelling** (Kimball star schema, surrogate keys, grain choice) | [Data Model](#data-model) · two fact grains (atomic + daily aggregate) |
-| **Reproducible ETL** (pandas → PostgreSQL, fixed seed, idempotent reload) | [`etl_load_dw.py`](etl_load_dw.py) · [ETL Pipeline](#etl-pipeline) |
-| **Data integrity instinct** (caught `floor(a)+floor(b)≠floor(a+b)`, proved it at row level, fixed by construction) | [Design evolution · step 5](#design-evolution--measurement-scales--the-blank-fix) |
-| **Measurement-scale literacy** (ordinal vs ratio → right chart, right statistic) | scatter → box-plot redesign in [Design evolution](#design-evolution--measurement-scales--the-blank-fix) |
-| **Honest analytics** (association vs causation, simulated-data disclosure) | [Known limitations](#known-limitations-be-honest-at-the-defense) |
-| **BI storytelling** (one page, one question, coordinated cross-filtering) | [Report A](#report-a--olist-sellers-analysis) |
+**Stack:** Python (pandas) · PostgreSQL · Power BI  
+**Scale:** 6 tables (4 dimensions, 2 facts) · 112,650 fact rows · 2016–2018
 
 ---
 
@@ -43,11 +11,11 @@ A full data warehouse and BI project built on the [Olist Brazilian E-Commerce da
 
 | Deliverable | Status |
 |---|---|
-| **Dimensional warehouse + reproducible ETL** | ✅ 6 tables · 112,650 fact rows |
-| **Report A** — Delivery accountability (seller vs carrier) | ✅ Complete |
-| **Report B** — Regional freight & cost-to-serve | ✅ Built |
-| **OLAP** — Regional fulfilment & growth explorer | 🛠 In progress |
-| **Executive KPI dashboard** | 📋 Planned |
+| Dimensional warehouse + reproducible ETL | Complete — 6 tables, 112,650 fact rows |
+| Report A — Delivery accountability (seller vs carrier) | Complete |
+| Report B — Regional freight & cost-to-serve | Complete |
+| OLAP — Regional fulfilment & growth explorer | In progress |
+| Executive KPI dashboard | Planned |
 
 ---
 
@@ -172,14 +140,14 @@ erDiagram
 
 ```mermaid
 flowchart LR
-    A[("📂 7 CSV Files")] --> B["🔄 Load & Parse\npandas"]
-    B --> C1["📅 dim_date\n800 rows"]
-    B --> C2["👤 dim_customer\n96,096 rows"]
-    B --> C3["🏪 dim_seller\n3,095 rows"]
-    B --> C4["📦 dim_product\n32,951 rows"]
-    C1 & C2 & C3 & C4 --> D["⚡ fact_order_item\n112,650 rows"]
-    D --> E["📊 fact_daily_seller_category\naggregated summary"]
-    C1 & C2 & C3 & C4 & D & E --> F[("🐘 PostgreSQL\nolist_dw")]
+    A[("7 CSV files")] --> B["Load & parse (pandas)"]
+    B --> C1["dim_date (800)"]
+    B --> C2["dim_customer (96,096)"]
+    B --> C3["dim_seller (3,095)"]
+    B --> C4["dim_product (32,951)"]
+    C1 & C2 & C3 & C4 --> D["fact_order_item (112,650)"]
+    D --> E["fact_daily_seller_category"]
+    C1 & C2 & C3 & C4 & D & E --> F[("PostgreSQL · olist_dw")]
 ```
 
 ---
@@ -188,59 +156,59 @@ flowchart LR
 
 Every field in the warehouse falls into one of three categories:
 
-> 🟢 **Source** — taken directly from a Kaggle CSV  
-> 🔵 **Derived** — computed from source fields during ETL  
-> 🟡 **Simulated** — generated synthetically with a fixed random seed (42) for reproducibility
+> **Source** — taken directly from a Kaggle CSV  
+> **Derived** — computed from source fields during ETL  
+> **Simulated** — generated synthetically with a fixed random seed (42) for reproducibility
 
 ### dim_customer
 
 | Field | Category | Notes |
 |---|---|---|
-| `sk_customer` | 🔵 Derived | Surrogate key — auto-incremented by the DB |
-| `customer_unique_id` | 🟢 Source | Deduplicated from `olist_customers_dataset.csv` |
-| `customer_city` | 🟢 Source | |
-| `customer_state` | 🟢 Source | |
-| `customer_region` | 🔵 Derived | Mapped from state → North / Northeast / Southeast / South / Center-West |
-| `customer_age` | 🟡 Simulated | Uniform random 18–70 |
-| `customer_age_group` | 🟡 Simulated | Binned from age: 18-24 / 25-34 / 35-44 / 45-54 / 55-64 / 65+ |
-| `customer_gender` | 🟡 Simulated | M/F with 48%/52% split |
-| `customer_signup_date` | 🟡 Simulated | 60–730 random days before the customer's first order |
-| `customer_segment` | 🔵 Derived | Occasional (1 order) / Regular (2–4 orders) / Loyal (5+ orders) |
+| `sk_customer` | Derived | Surrogate key — auto-incremented by the DB |
+| `customer_unique_id` | Source | Deduplicated from `olist_customers_dataset.csv` |
+| `customer_city` | Source | |
+| `customer_state` | Source | |
+| `customer_region` | Derived | Mapped from state → North / Northeast / Southeast / South / Center-West |
+| `customer_age` | Simulated | Uniform random 18–70 |
+| `customer_age_group` | Simulated | Binned from age: 18-24 / 25-34 / 35-44 / 45-54 / 55-64 / 65+ |
+| `customer_gender` | Simulated | M/F with 48%/52% split |
+| `customer_signup_date` | Simulated | 60–730 random days before the customer's first order |
+| `customer_segment` | Derived | Occasional (1 order) / Regular (2–4 orders) / Loyal (5+ orders) |
 
 ### dim_seller
 
 | Field | Category | Notes |
 |---|---|---|
-| `sk_seller` | 🔵 Derived | Surrogate key |
-| `seller_id` | 🟢 Source | |
-| `seller_city` | 🟢 Source | |
-| `seller_state` | 🟢 Source | |
-| `seller_region` | 🔵 Derived | Mapped from state |
-| `seller_main_category` | 🔵 Derived | Most frequently sold product category |
-| `seller_size_category` | 🔵 Derived | Small (<50 items) / Medium (<500) / Large (500+) |
-| `seller_tier` | 🔵 Derived | Bronze (<5K revenue) / Silver (<50K) / Gold (50K+) |
-| `seller_join_date` | 🟡 Simulated | 30–1095 random days before dataset start (Sep 2016) |
-| `seller_plan` | 🟡 Simulated | Subscription plan by sales volume: Free / Starter / Pro / Enterprise |
-| `subscription_fee_monthly` | 🟡 Simulated | Monthly SaaS fee (BRL): 0 / 99 / 299 / 699 |
-| `commission_rate` | 🟡 Simulated | Marketplace commission on item price: 20% / 16% / 13% / 10% |
-| `payment_rate` | 🟡 Simulated | Payment-processing rate: 2.97% / 2.87% / 2.77% / 2.47% |
-| `active_months` | 🔵 Derived | Inclusive month span of seller activity (months billed) |
-| `subscription_revenue_total` | 🔵 Derived | `subscription_fee_monthly × active_months` |
+| `sk_seller` | Derived | Surrogate key |
+| `seller_id` | Source | |
+| `seller_city` | Source | |
+| `seller_state` | Source | |
+| `seller_region` | Derived | Mapped from state |
+| `seller_main_category` | Derived | Most frequently sold product category |
+| `seller_size_category` | Derived | Small (<50 items) / Medium (<500) / Large (500+) |
+| `seller_tier` | Derived | Bronze (<5K revenue) / Silver (<50K) / Gold (50K+) |
+| `seller_join_date` | Simulated | 30–1095 random days before dataset start (Sep 2016) |
+| `seller_plan` | Simulated | Subscription plan by sales volume: Free / Starter / Pro / Enterprise |
+| `subscription_fee_monthly` | Simulated | Monthly SaaS fee (BRL): 0 / 99 / 299 / 699 |
+| `commission_rate` | Simulated | Marketplace commission on item price: 20% / 16% / 13% / 10% |
+| `payment_rate` | Simulated | Payment-processing rate: 2.97% / 2.87% / 2.77% / 2.47% |
+| `active_months` | Derived | Inclusive month span of seller activity (months billed) |
+| `subscription_revenue_total` | Derived | `subscription_fee_monthly × active_months` |
 
-> **💡 Olist revenue model (synthetic).** Olist's real revenue is *not* the item price — that's **GMV** (the seller's money). Olist earns **commission + a R$5/item fee + payment processing + SaaS subscriptions**. The plan, fees and commission/payment rates above are **synthetically generated (fixed seed 42)**, modelled on Olist's published pricing and assigned by seller sales volume. Only the **R$5/item fee is exact**. These power the *Take Rate* and Olist-revenue measures; the SaaS/platform-fee streams that require seller-plan data we don't have are approximated or omitted, and disclosed as such.
+> **Olist revenue model (synthetic).** Olist's real revenue is *not* the item price — that is **GMV** (the seller's money). Olist earns commission + a R$5/item fee + payment processing + SaaS subscriptions. The plan, fees and commission/payment rates are **synthetically generated (fixed seed 42)**, modelled on Olist's published pricing and assigned by seller sales volume; only the R$5/item fee is exact. The **commission and payment rates live on `dim_seller`, not `dim_product`**, because Olist sets them by the seller's contracted plan — the same product sold by two sellers carries two different rates. These power the Take-Rate and Olist-revenue measures; the SaaS/platform-fee streams that require seller-plan data we do not have are approximated or omitted, and disclosed as such.
 
 ### dim_product
 
 | Field | Category | Notes |
 |---|---|---|
-| `sk_product` | 🔵 Derived | Surrogate key |
-| `product_id` | 🟢 Source | |
-| `product_category` | 🔵 Derived | Translated from Portuguese via translation CSV |
-| `product_category_group` | 🔵 Derived | Grouped by keyword (Electronics / Fashion / Health & Beauty / etc.) |
-| `list_price` | 🔵 Derived | Average sale price across all order items for this product |
-| `price_band` | 🔵 Derived | Budget (<50) / Mid (<200) / Premium (<500) / Luxury (500+) |
-| `unit_cost` | 🔵 Derived | `list_price × 0.60` — assumes 40% gross margin |
-| `is_premium` | 🔵 Derived | `TRUE` if `list_price ≥ 500` |
+| `sk_product` | Derived | Surrogate key |
+| `product_id` | Source | |
+| `product_category` | Derived | Translated from Portuguese via translation CSV |
+| `product_category_group` | Derived | Grouped by keyword (Electronics / Fashion / Health & Beauty / etc.) |
+| `list_price` | Derived | Average sale price across all order items for this product |
+| `price_band` | Derived | Budget (<50) / Mid (<200) / Premium (<500) / Luxury (500+) |
+| `unit_cost` | Derived | `list_price × 0.60` — assumes 40% gross margin |
+| `is_premium` | Derived | `TRUE` if `list_price ≥ 500` |
 
 ### fact_order_item _(high granularity — one row per order line)_
 
@@ -248,25 +216,25 @@ The most detailed fact table. Each row represents a single product sold within a
 
 | Field | Category | Definition |
 |---|---|---|
-| `sk_order` | 🟢 Source | Order ID from the source system |
-| `order_item_id` | 🟢 Source | Line number within the order (1, 2, 3… if the order has multiple products) |
-| `sk_date_purchase` | 🔵 Derived | FK → dim_date — the date the customer placed the order |
-| `sk_date_carrier` | 🔵 Derived | FK → dim_date — the date the seller handed the package to the carrier (the seller→carrier handoff, nullable) |
-| `sk_date_delivered` | 🔵 Derived | FK → dim_date — the date the package was actually delivered (nullable) |
-| `sk_date_estimated_delivery` | 🔵 Derived | FK → dim_date — the delivery date that was promised to the customer (nullable) |
-| `sk_customer` | 🔵 Derived | FK → dim_customer |
-| `sk_seller` | 🔵 Derived | FK → dim_seller |
-| `sk_product` | 🔵 Derived | FK → dim_product |
-| `price` | 🟢 Source | The amount the customer paid for the product itself (excluding shipping) |
-| `freight_value` | 🟢 Source | The shipping cost the customer paid for this item |
-| `revenue` | 🔵 Derived | `price + freight_value` — total money collected from the customer for this line |
-| `unit_cost` | 🔵 Derived | The estimated cost to the seller for this product (`price × 0.60`) |
-| `gross_profit` | 🔵 Derived | `price − unit_cost` — profit on the product before operating expenses |
-| `delivery_days` | 🔵 Derived | `delivered_date − purchase_date` in calendar days — total shipping time |
-| `seller_handling_days` | 🔵 Derived | `carrier_handoff − purchase_date` — the **seller-owned** phase (prep, pack, post), nullable |
-| `carrier_transit_days` | 🔵 Derived | `delivered_date − carrier_handoff` — the **carrier-owned** phase (collection, transit, last-mile), nullable |
-| `is_on_time` | 🔵 Derived | `1` if the package arrived on or before the estimated date, `0` if late, `NULL` if not yet delivered |
-| `review_score` | 🟢 Source | Customer satisfaction score for the order (1 = worst, 5 = best) |
+| `sk_order` | Source | Order ID from the source system |
+| `order_item_id` | Source | Line number within the order (1, 2, 3… if the order has multiple products) |
+| `sk_date_purchase` | Derived | FK → dim_date — the date the customer placed the order |
+| `sk_date_carrier` | Derived | FK → dim_date — the date the seller handed the package to the carrier (the seller→carrier handoff, nullable) |
+| `sk_date_delivered` | Derived | FK → dim_date — the date the package was actually delivered (nullable) |
+| `sk_date_estimated_delivery` | Derived | FK → dim_date — the delivery date that was promised to the customer (nullable) |
+| `sk_customer` | Derived | FK → dim_customer |
+| `sk_seller` | Derived | FK → dim_seller |
+| `sk_product` | Derived | FK → dim_product |
+| `price` | Source | The amount the customer paid for the product itself (excluding shipping) |
+| `freight_value` | Source | The shipping cost the customer paid for this item |
+| `revenue` | Derived | `price + freight_value` — total money collected from the customer for this line |
+| `unit_cost` | Derived | The estimated cost to the seller for this product (`price × 0.60`) |
+| `gross_profit` | Derived | `price − unit_cost` — profit on the product before operating expenses |
+| `delivery_days` | Derived | `delivered_date − purchase_date` in calendar days — total shipping time |
+| `seller_handling_days` | Derived | `carrier_handoff − purchase_date` — the **seller-owned** phase (prep, pack, post), nullable |
+| `carrier_transit_days` | Derived | `delivered_date − carrier_handoff` — the **carrier-owned** phase (collection, transit, last-mile), nullable |
+| `is_on_time` | Derived | `1` if the package arrived on or before the estimated date, `0` if late, `NULL` if not yet delivered |
+| `review_score` | Source | Customer satisfaction score for the order (1 = worst, 5 = best) |
 
 ### fact_daily_seller_category _(low granularity — daily aggregated summary)_
 
@@ -278,18 +246,18 @@ Every row is built by aggregating the matching rows from `fact_order_item`. The 
 
 | Field | Category | Definition |
 |---|---|---|
-| `sk_date` | 🔵 Derived | FK → dim_date — the purchase date of the aggregated orders |
-| `sk_seller` | 🔵 Derived | FK → dim_seller |
-| `sk_product_category` | 🔵 Derived | Integer ID for the product category (alphabetically assigned; join to dim_product to get the name) |
-| `orders_count` | 🔵 Derived | Number of distinct orders placed |
-| `items_count` | 🔵 Derived | Total number of individual items sold |
-| `revenue_total` | 🔵 Derived | Sum of `revenue` across all matching order lines |
-| `freight_total` | 🔵 Derived | Sum of `freight_value` — total shipping collected |
-| `gross_profit_total` | 🔵 Derived | Sum of `gross_profit` — total product profit for the day |
-| `on_time_deliveries` | 🔵 Derived | Count of items where `is_on_time = 1` |
-| `delivered_items` | 🔵 Derived | Count of items that have a recorded delivery date |
-| `review_score_sum` | 🔵 Derived | Sum of all review scores (divide by `reviews_count` to get the average) |
-| `reviews_count` | 🔵 Derived | Number of items that received a review |
+| `sk_date` | Derived | FK → dim_date — the purchase date of the aggregated orders |
+| `sk_seller` | Derived | FK → dim_seller |
+| `sk_product_category` | Derived | Integer ID for the product category (alphabetically assigned; join to dim_product to get the name) |
+| `orders_count` | Derived | Number of distinct orders placed |
+| `items_count` | Derived | Total number of individual items sold |
+| `revenue_total` | Derived | Sum of `revenue` across all matching order lines |
+| `freight_total` | Derived | Sum of `freight_value` — total shipping collected |
+| `gross_profit_total` | Derived | Sum of `gross_profit` — total product profit for the day |
+| `on_time_deliveries` | Derived | Count of items where `is_on_time = 1` |
+| `delivered_items` | Derived | Count of items that have a recorded delivery date |
+| `review_score_sum` | Derived | Sum of all review scores (divide by `reviews_count` to get the average) |
+| `reviews_count` | Derived | Number of items that received a review |
 
 ---
 
@@ -340,90 +308,33 @@ python etl_load_dw.py
 ![Olist Sellers Analysis](assets/Final_First_report.png)
 
 ### Purpose
-A single-page Power BI report built for Olist's **seller operations team**. It answers one tight, actionable question: *where should Olist focus fulfillment improvement in order to reduce customer dissatisfaction?*
+A single-page Power BI report for Olist's **seller operations team**, answering one question: *where should Olist focus fulfilment improvement to reduce customer dissatisfaction?* Total delivery time is split into a **seller-handling** and a **carrier-transit** phase to locate the bottleneck — and the evidence points to carrier transit, so the improvement focus is **logistics-partner performance**, not seller preparation.
 
-Every visual converges on delivery performance. The report first shows that lower review scores are associated with longer delivery times. It then decomposes total delivery time into **seller handling time** and **carrier transit time**, helping identify whether the main operational bottleneck is created before carrier handoff or during carrier transit. In the current analysis, the larger share of delivery time appears to come from carrier transit, suggesting that the primary improvement focus should be **logistics-partner performance** rather than seller preparation.
+### What it shows
+Three coordinated visuals on one page, driven by a `Time Period` slicer and matrix cross-filtering (clicking a category row filters the rest):
 
-### Structure
-One page, one global filter, and three coordinated visuals where the matrix drives the rest:
+- **Category Stats** (matrix) — Revenue, seller-count share, % Positive Reviews (≥4★), On-Time Rate, and average delivery days per product category.
+- **Delivery Time Breakdown by Category** (stacked column) — average delivery days split into the seller-handling and carrier-transit phases; the carrier segment dominates every bar.
+- **Delivery Days Distribution by Review Score** (box plot) — delivery time (ratio) across review scores 1–5 (ordinal); the headline visual.
 
-| Element | Role |
-|---|---|
-| **Filter** — *Time Period* | Global slicer that cascades through every visual on the page. |
-| **Category Stats** (hierarchical matrix) | Primary analytical view **and the page's category filter**: clicking a *Product Category* row cross-filters the other visuals to that category — replacing a separate category slicer. Columns show Revenue (BRL), seller-count share, **% Positive Reviews (≥4★)**, On-Time Fulfillment Rate, and **average delivery days**. Lets a manager line up revenue, satisfaction, and fulfilment speed for every category at a glance. |
-| **Delivery Time Breakdown by Category** (stacked column) | Average delivery days per category, split into the **seller-handling** and **carrier-transit** phases. Replaced an earlier revenue pie. The dark carrier segment dominates every bar — making the accountability split impossible to miss. |
-| **Delivery Days Distribution by Review Score** (box plot) | Distribution of delivery time (ratio-scale) across review scores 1–5 (ordinal), colored by tier. The report's headline visual: it isolates *delivery speed* as a controllable driver of satisfaction. Replaced an earlier scatter that incorrectly treated the ordinal review score as a continuous axis (see *Design evolution* below). |
+Review score is treated as **ordinal** (the matrix reports *% Positive ≥4★*, not a mean of 1–5); `delivery_days` is ratio-scale, so its mean is valid.
 
-### Design principles
-- **One theme, one page** — every visual is about *delivery performance*. No mixed messaging.
-- **Filter-first layout** — the Time Period slicer sits top-left where managers look first; category filtering is driven by clicking matrix rows.
-- **Consistent phase color coding** — seller-handling and carrier-transit use the same two colors across the breakdown chart, and tier colors are consistent in the box plot.
-- **Hierarchical drill in the matrix** — keeps the visual count low without losing depth.
-- **Scale-correct measures** — review score is treated as **ordinal**: the matrix reports *% Positive Reviews (≥4★)*, a frequency-based ratio, instead of an arithmetic mean of 1–5 scores. `delivery_days` is ratio-scale, so its mean *is* valid and is shown directly.
+### Key findings
+- Lower review scores track with **longer delivery times** — median falls from ~19 days at 1★ to ~10 days at 5★ (association, not proven cause).
+- **~80% of that gap is carrier-side**: across 1★→5★, seller handling drops 4.2→2.4 days (Δ1.8) vs carrier transit 15.0→7.8 (Δ7.2).
+- The seller-vs-carrier split holds across **every** category — a platform-wide logistics pattern, not product mix.
+- Satisfaction varies far more than the on-time rate (a flat ~0.90), so *how long* delivery takes matters more than beating the padded estimate.
 
-### Decisions supported
-- **Tier promotion / demotion** — spot Silver sellers with Gold-tier metrics, or Gold sellers with Bronze-tier reviews.
-- **Category investment** — identify categories where margin is healthy *and* satisfaction is strong (expand) vs. high-revenue / low-satisfaction categories (operational fix).
-- **High-risk category flagging** — clicking a category row in the matrix filters the box plot, exposing categories whose revenue concentrates in low review scores — sellers who generate revenue while damaging the platform's marketplace reputation.
+### Known limitations
+- **Gross margin is simulated** (`unit_cost = list_price × 0.60`), so it was dropped from the final matrix in favour of source-grounded delivery and satisfaction metrics.
+- **No geographic dimension** here — regional analysis lives in Report B by design.
+- **Delivery ↔ satisfaction is association, not proven causation.** Confounders (category, season, region, price) aren't fully controlled, so the report frames delivery as *where to investigate*, not a demonstrated cause.
 
-### What the report reveals
-
-> 📦 **Headline:** lower review scores are associated with **longer delivery times** — median delivery falls monotonically from **~19 days at 1★ to ~10 days at 5★**. Fulfilment speed is the strongest *controllable* signal on this page — a place to investigate, not yet a proven cause.
-
-- **Lower review scores are associated with longer delivery times — the headline finding.** In the box plot, median delivery time decreases monotonically as review score rises: ~19 days at score 1 down to ~10 days at score 5. This is a strong association that points to fulfilment speed as a promising area to investigate — not a proven cause of dissatisfaction (see *Known limitations*).
-- **Most of the delivery time sits in the *carrier* phase, not the *seller* phase.** Splitting total delivery time into its two ownership phases — *seller handling* (purchase → carrier handoff) and *carrier transit* (handoff → customer) — shows the carrier phase accounts for the larger share of both the absolute time and the spread that tracks with review score. Across the 1★→5★ range, seller handling decreases 4.2 → 2.4 days (Δ 1.8) while carrier transit decreases 15.0 → 7.8 days (Δ 7.2) — so **~80% of the delivery-time difference between low- and high-rated orders is carrier-side**. This suggests fulfilment-improvement effort is better directed at logistics-partner performance than at seller preparation.
-- **The breakdown chart shows the split is consistent across *every* category.** The stacked column shows the carrier-transit segment exceeding the seller-handling base across all ten categories — Home & Garden and Electronics are highest (~12.5 avg days), Food & Drinks lowest (~9.7). Because the pattern is consistent across categories, it is unlikely to be driven by *product mix* alone — it looks like a platform-wide logistics pattern rather than a few outlier categories.
-- **Satisfaction varies far more than fulfilment-rate.** % Positive ranges from ~0.73 (Home & Garden) to ~0.83 (Books & Media) while the on-time rate sits at a flat ~0.90 for almost every category — suggesting that *how long* delivery takes, not just whether it beats the (padded) estimate, may matter more to customers.
-
-### Known limitations (be honest at the defense)
-- **Gross margin is simulated.** `unit_cost = list_price × 0.60` in the DW (fixed 40% assumption) — which is why margin was dropped from the final matrix in favour of delivery and satisfaction metrics that are grounded in real source data.
-- **No geographic dimension** in this report — regional analysis lives in Report B by design, but the seller team will sometimes ask "where are these sellers?" and the report has to defer (and a carrier problem is very likely regional).
-- **Delivery time and satisfaction are associated, not proven causal.** The box plot shows a strong monotonic association between longer delivery times and lower review scores — but association is not causation. Confounders (category, season, region, price) are not fully controlled, so the report deliberately frames delivery as *where to investigate and focus improvement*, not as a demonstrated cause. The category breakdown makes *product mix* a less likely sole explanation, and the temporal order (delivery precedes the review) makes reverse causation unlikely — but only an experiment or multivariate model could establish cause.
-
-### Design evolution — measurement scales & the "(Blank)" fix
-
-Part of this project is showing *how the visuals improved*, not just the final state. Visual 3 went through three steps worth documenting.
-
-**1 — From scatter to box plot (a measurement-scale fix).**
-The first version plotted *review score* (X) against *revenue* (Y) as a **scatter** ("relationship") chart. That is formally incorrect: a scatter relationship chart needs **two ratio-scale fact variables**, but `review_score` is **ordinal** — its order is meaningful, yet the gaps (3→4 vs 4→5) are not quantitatively equal. The old title also referenced the *average* of review scores, and the mean is only valid for interval/ratio data; ordinal data calls for median, mode, rank, percentiles, or a distribution view.
-
-The redesign uses a **box-and-whisker** chart — the course-correct way to compare the **distribution of a ratio-scale fact** across an **ordinal dimension (review score)**, colored by seller tier. (Power BI ships no native box plot, so the certified *Box and Whisker chart* by MAQ Software was imported via **Get more visuals**.)
-
-> The original scatter is preserved at [assets/report_a_v3_scatter.png](assets/report_a_v3_scatter.png) as a record of the correction.
-
-**2 — Why a "(Blank)" category appeared, and how it was removed.**
-
-![Box plot showing the (Blank) review-score category](assets/report_a_v3_blank_issue.png)
-
-The first box plot showed **six** categories on the review-score axis: `(Blank), 1, 2, 3, 4, 5`. The `(Blank)` box is **order items with no review score**.
-
-- **Root cause:** `review_score` is nullable (`SMALLINT`, no `NOT NULL`). In `etl_load_dw.py`, reviews are attached with a **left join** (`fact.merge(rev, on="order_id", how="left")`). The Olist source has reviews for only ~99,224 of 112,650 order items, so every item from an un-reviewed order gets `review_score = NULL`. Power BI buckets all NULLs into one `(Blank)` category. It is **not a data error** — it faithfully represents *"items that never received a customer review."*
-- **Fix:** a **visual-level filter** on `review_score` unchecks `(Blank)` (keeps 1–5). This removes the noise from this chart only, leaves the NULLs available to other visuals, and is fully reversible — so the warehouse is never altered for a presentation concern.
-
-**3 — From *revenue* to *delivery days* (a sharper business question).**
-The box plot first compared **revenue** across review scores — valid, but it only restated a known correlation (happy customers spend a bit more). Swapping the Y-axis to **delivery days** reframes the same chart around a lever management actually controls: the monotonic drop from ~19 days (score 1) to ~10 days (score 5) makes *fulfilment speed* the headline driver of satisfaction. Same measurement-scale logic (ratio fact across ordinal dimension), far more actionable insight.
-
-**4 — Page-level pivot: from "who earns" to "who's accountable".**
-The companion visual started as a **revenue-share pie** (Bronze/Silver/Gold) and the matrix carried a simulated *Gross Profit Margin %*. Both were dropped: the pie answered a different question than the delivery story, and the margin column was simulated (fixed 40% cost), so it added noise rather than signal. They were replaced by the **Delivery Time Breakdown by Category** stacked column (seller vs carrier phases) and an *average delivery days* matrix column — unifying the whole page around one defensible, source-grounded theme: **delivery performance and who owns it.**
-
-**5 — A reconciliation bug caught by reading the report carefully (`floor(a) + floor(b) ≠ floor(a+b)`).**
-After the breakdown chart went live, the average delivery days shown in the *matrix* (12.01) did **not** match the stacked-bar total of the two phases (11.53) — a ~0.47-day gap in **every** category. Rather than wave it away, I decomposed it at the row level.
-
-Each metric was computed independently from timestamps using pandas `Timedelta.days`, which **floors to whole days**:
-
-```python
-delivery_days        = (delivered - purchase).days     # floored once
-seller_handling_days = (handoff   - purchase).days     # floored
-carrier_transit_days = (delivered - handoff).days      # floored again
-```
-
-As *timedeltas*, `(handoff − purchase) + (delivered − handoff)` equals `(delivered − purchase)` exactly — but **`floor(a) + floor(b) ≤ floor(a + b)`**. Flooring the two sub-phases discards a fractional day from *each*, while the total floors only once. The proof is in the per-row residual `delivery − seller − carrier`, which on all 110,195 fully-delivered rows took **only the values {0, 1}** — 0 in 57,366 rows, 1 in 52,829 — averaging exactly **0.479 days**, which *is* the entire gap. A residual mathematically bounded to {0, 1} is the unmistakable fingerprint of double-flooring; it rules out join fan-out, a unit error, or a second data source.
-
-**Fix** — define the final phase as the *remainder* of the single-floored authoritative total, so the parts reconcile by construction on every row:
-
-```python
-carrier_transit_days = delivery_days - seller_handling_days   # carrier absorbs the sub-day remainder
-```
-
-After re-running the ETL, the count of rows where `seller + carrier ≠ delivery` dropped from **110,195 to 0**. The lesson is a general one for any additive decomposition: **derive the parts so they sum to the authoritative total — never round each part independently and hope they reconcile.** Logged in full as ISSUE #6 in [issues_and_insights.txt](issues_and_insights.txt).
+### Design evolution
+The visuals were revised deliberately; each earlier version is kept as a record of the correction:
+- **Scatter → box plot** — the scatter treated the *ordinal* review score as a continuous axis and averaged it (invalid for ordinal data); the box plot correctly shows a ratio fact's distribution across an ordinal dimension. *(Original: [assets/report_a_v3_scatter.png](assets/report_a_v3_scatter.png).)*
+- **Removed the `(Blank)` review bucket** — nullable `review_score` + a left join (99,224 of 112,650 items reviewed) put NULLs in a `(Blank)` box; fixed with a reversible visual-level filter, not a data change.
+- **Revenue → delivery days** on the box-plot Y-axis — reframes the chart around a lever management controls.
+- **Dropped the revenue pie + simulated-margin column** — replaced with the seller-vs-carrier breakdown to unify the page on delivery accountability.
+- **Fixed a floor-truncation bug** — the matrix mean (12.01) didn't match the two-phase total (11.53) because each phase was floored independently (`floor(a)+floor(b) ≤ floor(a+b)`); the per-row residual was bounded to {0,1}, averaging 0.479 (the whole gap). Fixed by `carrier_transit_days = delivery_days − seller_handling_days` (remainder), cutting mismatched rows from 110,195 to 0. Full write-up as ISSUE #6 in [issues_and_insights.txt](issues_and_insights.txt).
 
