@@ -303,8 +303,9 @@ def build_dim_seller(sellers: pd.DataFrame, items: pd.DataFrame,
                      products: pd.DataFrame, translation: pd.DataFrame) -> pd.DataFrame:
     """
     One row per seller_id.
-    Simulated fields: seller_join_date.
-    Derived fields:   seller_main_category, seller_size_category, seller_tier.
+    Simulated fields: seller_join_date; seller_plan and its bundled fee/rates.
+    Derived fields:   seller_main_category, seller_size_category, seller_tier,
+                      active_months, subscription_revenue_total.
     """
     # Translate category names
     if not translation.empty and "product_category_name" in translation.columns:
@@ -368,6 +369,48 @@ def build_dim_seller(sellers: pd.DataFrame, items: pd.DataFrame,
     df["seller_join_date"] = [
         dataset_start - timedelta(days=random.randint(30, 1095)) for _ in range(n)
     ]
+
+    # ── Synthetic subscription plan (DISCLOSED synthetic data) ────────────
+    # Each seller is assigned a plan by sales volume. A plan bundles a monthly
+    # SaaS fee, a marketplace commission rate, and a payment-processing rate.
+    # These values are SYNTHETIC, modelled on Olist's published pricing model;
+    # only the R$5/item fee (applied in the fact) is exact.
+    #   min_items  plan         monthly_fee  commission  payment
+    PLAN_BY_VOLUME = [
+        (500, "Enterprise", 699.00, 0.10, 0.0247),
+        (50,  "Pro",        299.00, 0.13, 0.0277),
+        (10,  "Starter",     99.00, 0.16, 0.0287),
+        (0,   "Free",         0.00, 0.20, 0.0297),
+    ]
+
+    def assign_plan(cnt):
+        c = 0 if pd.isna(cnt) else cnt
+        for min_items, plan, fee, comm, pay in PLAN_BY_VOLUME:
+            if c >= min_items:
+                return pd.Series([plan, fee, comm, pay])
+        return pd.Series(["Free", 0.00, 0.20, 0.0297])
+
+    df[["seller_plan", "subscription_fee_monthly",
+        "commission_rate", "payment_rate"]] = df["total_items"].apply(assign_plan)
+
+    # active_months = inclusive month span of the seller's activity, using
+    # shipping_limit_date (present in items) as the order-timing proxy.
+    itm = items.copy()
+    itm["shipping_limit_date"] = pd.to_datetime(itm["shipping_limit_date"], errors="coerce")
+    span = itm.groupby("seller_id")["shipping_limit_date"].agg(["min", "max"]).reset_index()
+
+    def months_between(row):
+        a, b = row["min"], row["max"]
+        if pd.isna(a) or pd.isna(b):
+            return 1
+        return max(1, (b.year - a.year) * 12 + (b.month - a.month) + 1)
+
+    span["active_months"] = span.apply(months_between, axis=1)
+    df = df.merge(span[["seller_id", "active_months"]], on="seller_id", how="left")
+    df["active_months"] = df["active_months"].fillna(1).astype(int)
+    df["subscription_revenue_total"] = (
+        df["subscription_fee_monthly"] * df["active_months"]
+    ).round(2)
 
     return df
 
@@ -745,11 +788,19 @@ def main():
             r["seller_size_category"],
             r["seller_tier"],
             r["seller_join_date"],
+            r["seller_plan"],
+            r["subscription_fee_monthly"],
+            r["commission_rate"],
+            r["payment_rate"],
+            r["active_months"],
+            r["subscription_revenue_total"],
         )))
     bulk_insert(cur, "dim_seller",
                 ["seller_id", "seller_city", "seller_state", "seller_region",
                  "seller_main_category", "seller_size_category",
-                 "seller_tier", "seller_join_date"],
+                 "seller_tier", "seller_join_date",
+                 "seller_plan", "subscription_fee_monthly", "commission_rate",
+                 "payment_rate", "active_months", "subscription_revenue_total"],
                 sell_rows)
     conn.commit()
 

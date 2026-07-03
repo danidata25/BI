@@ -52,7 +52,13 @@ CREATE TABLE dim_seller (
     seller_main_category VARCHAR(50),
     seller_size_category VARCHAR(10),
     seller_tier          VARCHAR(10),
-    seller_join_date     DATE
+    seller_join_date     DATE,
+    seller_plan               VARCHAR(15),
+    subscription_fee_monthly  NUMERIC(10,2),
+    commission_rate           NUMERIC(5,4),
+    payment_rate              NUMERIC(5,4),
+    active_months             SMALLINT,
+    subscription_revenue_total NUMERIC(12,2)
 );
 
 -- ---------------------------------------------------------------------

@@ -220,6 +220,14 @@ Every field in the warehouse falls into one of three categories:
 | `seller_size_category` | 🔵 Derived | Small (<50 items) / Medium (<500) / Large (500+) |
 | `seller_tier` | 🔵 Derived | Bronze (<5K revenue) / Silver (<50K) / Gold (50K+) |
 | `seller_join_date` | 🟡 Simulated | 30–1095 random days before dataset start (Sep 2016) |
+| `seller_plan` | 🟡 Simulated | Subscription plan by sales volume: Free / Starter / Pro / Enterprise |
+| `subscription_fee_monthly` | 🟡 Simulated | Monthly SaaS fee (BRL): 0 / 99 / 299 / 699 |
+| `commission_rate` | 🟡 Simulated | Marketplace commission on item price: 20% / 16% / 13% / 10% |
+| `payment_rate` | 🟡 Simulated | Payment-processing rate: 2.97% / 2.87% / 2.77% / 2.47% |
+| `active_months` | 🔵 Derived | Inclusive month span of seller activity (months billed) |
+| `subscription_revenue_total` | 🔵 Derived | `subscription_fee_monthly × active_months` |
+
+> **💡 Olist revenue model (synthetic).** Olist's real revenue is *not* the item price — that's **GMV** (the seller's money). Olist earns **commission + a R$5/item fee + payment processing + SaaS subscriptions**. The plan, fees and commission/payment rates above are **synthetically generated (fixed seed 42)**, modelled on Olist's published pricing and assigned by seller sales volume. Only the **R$5/item fee is exact**. These power the *Take Rate* and Olist-revenue measures; the SaaS/platform-fee streams that require seller-plan data we don't have are approximated or omitted, and disclosed as such.
 
 ### dim_product
 
