@@ -65,6 +65,7 @@ CREATE TABLE dim_product (
     product_category_group VARCHAR(30),
     list_price             NUMERIC(10,2),
     price_band             VARCHAR(10),
+    price_band_rank        SMALLINT,
     unit_cost              NUMERIC(10,2),
     is_premium             BOOLEAN
 );
@@ -89,6 +90,8 @@ CREATE TABLE fact_order_item (
     unit_cost                   NUMERIC(10,2),
     delivery_days               SMALLINT,
     seller_handling_days        SMALLINT,
+    payment_approval_days       SMALLINT,
+    seller_prep_days            SMALLINT,
     carrier_transit_days        SMALLINT,
     is_on_time                  SMALLINT,
     review_score                SMALLINT,

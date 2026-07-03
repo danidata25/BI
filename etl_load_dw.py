@@ -103,6 +103,11 @@ def price_band(price) -> str:
     return "Luxury"
 
 
+# Ordinal rank for price_band so BI tools sort it Budget<Mid<Premium<Luxury
+# (alphabetical order would wrongly put Luxury second). Used as a Sort-By column.
+PRICE_BAND_RANK = {"Budget": 1, "Mid": 2, "Premium": 3, "Luxury": 4, "Unknown": 0}
+
+
 def nan_to_none(val):
     """Convert numpy/pandas NaN/NaT to Python None, and numpy scalars to
     Python native types so psycopg2 can serialize them correctly."""
@@ -396,6 +401,7 @@ def build_dim_product(products: pd.DataFrame, items: pd.DataFrame,
     df["list_price"] = df["list_price"].round(2)
     df["unit_cost"] = (df["list_price"] * 0.60).round(2)
     df["price_band"] = df["list_price"].apply(price_band)
+    df["price_band_rank"] = df["price_band"].map(PRICE_BAND_RANK)
     df["is_premium"] = df["list_price"] >= 500
 
     return df
@@ -419,13 +425,16 @@ def build_fact_order_item(
     gross_profit         = price - unit_cost
     delivery_days        = (delivered - purchase).days  (total, authoritative)
     seller_handling_days = (carrier_handoff - purchase).days   (SELLER phase)
+    payment_approval_days= (approved - purchase).days, clamped  (PAYMENT sub-phase)
+    seller_prep_days     = seller_handling_days - payment_approval_days (SELLER prep sub-phase)
     carrier_transit_days = delivery_days - seller_handling_days (CARRIER phase, remainder)
-                           -> guarantees seller + carrier == delivery_days per row
+                           -> payment + prep + carrier == delivery_days per row
     is_on_time           = 1 if delivered <= estimated else 0
     review_score         = from order_reviews (first review per order)
     """
     # Parse dates
-    for col in ["order_purchase_timestamp", "order_delivered_carrier_date",
+    for col in ["order_purchase_timestamp", "order_approved_at",
+                "order_delivered_carrier_date",
                 "order_delivered_customer_date",
                 "order_estimated_delivery_date"]:
         orders[col] = pd.to_datetime(orders[col], errors="coerce")
@@ -457,7 +466,7 @@ def build_fact_order_item(
 
     # Build fact rows
     fact = items.merge(
-        orders[["order_id", "customer_id", "order_purchase_timestamp",
+        orders[["order_id", "customer_id", "order_purchase_timestamp", "order_approved_at",
                 "order_delivered_carrier_date",
                 "order_delivered_customer_date", "order_estimated_delivery_date"]],
         on="order_id", how="left"
@@ -497,6 +506,29 @@ def build_fact_order_item(
         return (row["order_delivered_carrier_date"] - row["order_purchase_timestamp"]).days
 
     fact["seller_handling_days"] = fact.apply(calc_seller_handling, axis=1)
+
+    # payment_approval_days (purchase -> payment approval) and seller_prep_days
+    # (approval -> carrier handoff) split the seller phase so that
+    # payment_approval_days + seller_prep_days == seller_handling_days on every row
+    # (=> payment + prep + carrier == delivery_days). order_approved_at can be null;
+    # when it is, the whole seller phase is attributed to prep (payment = 0).
+    def calc_payment_approval(row):
+        if pd.isna(row["seller_handling_days"]):
+            return None
+        if pd.isna(row["order_approved_at"]) or pd.isna(row["order_purchase_timestamp"]):
+            return 0
+        d = (row["order_approved_at"] - row["order_purchase_timestamp"]).days
+        # clamp into [0, seller_handling_days] so both sub-phases stay non-negative
+        return max(0, min(d, int(row["seller_handling_days"])))
+
+    fact["payment_approval_days"] = fact.apply(calc_payment_approval, axis=1)
+
+    def calc_seller_prep(row):
+        if pd.isna(row["seller_handling_days"]) or pd.isna(row["payment_approval_days"]):
+            return None
+        return int(row["seller_handling_days"]) - int(row["payment_approval_days"])
+
+    fact["seller_prep_days"] = fact.apply(calc_seller_prep, axis=1)
 
     # carrier_transit_days (carrier handoff -> customer): the CARRIER-owned phase.
     # Defined as the REMAINDER of the authoritative (single-floored) total so that
@@ -544,6 +576,8 @@ def build_fact_order_item(
             nan_to_none(r.get("unit_cost")),
             nan_to_none(r.get("delivery_days")),
             nan_to_none(r.get("seller_handling_days")),
+            nan_to_none(r.get("payment_approval_days")),
+            nan_to_none(r.get("seller_prep_days")),
             nan_to_none(r.get("carrier_transit_days")),
             nan_to_none(r.get("is_on_time")),
             nan_to_none(r.get("review_score")),
@@ -574,7 +608,8 @@ def build_fact_daily_seller_category(
         "sk_date_delivered", "sk_date_estimated_delivery",
         "sk_customer", "sk_seller", "sk_product",
         "price", "freight_value", "revenue", "gross_profit", "unit_cost",
-        "delivery_days", "seller_handling_days", "carrier_transit_days",
+        "delivery_days", "seller_handling_days", "payment_approval_days",
+        "seller_prep_days", "carrier_transit_days",
         "is_on_time", "review_score",
     ]
     df = pd.DataFrame(fact_rows, columns=cols)
@@ -732,12 +767,13 @@ def main():
             r["product_category_group"],
             nan_to_none(r["list_price"]),
             r["price_band"],
+            nan_to_none(r["price_band_rank"]),
             nan_to_none(r["unit_cost"]),
             bool(r["is_premium"]) if not pd.isna(r["is_premium"]) else None,
         )))
     bulk_insert(cur, "dim_product",
                 ["product_id", "product_category", "product_category_group",
-                 "list_price", "price_band", "unit_cost", "is_premium"],
+                 "list_price", "price_band", "price_band_rank", "unit_cost", "is_premium"],
                 prod_rows)
     conn.commit()
 
@@ -756,7 +792,8 @@ def main():
                  "sk_date_delivered", "sk_date_estimated_delivery",
                  "sk_customer", "sk_seller", "sk_product",
                  "price", "freight_value", "revenue", "gross_profit", "unit_cost",
-                 "delivery_days", "seller_handling_days", "carrier_transit_days",
+                 "delivery_days", "seller_handling_days", "payment_approval_days",
+                 "seller_prep_days", "carrier_transit_days",
                  "is_on_time", "review_score"],
                 fact_rows)
     conn.commit()
