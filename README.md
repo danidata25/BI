@@ -39,16 +39,15 @@ A full data warehouse and BI project built on the [Olist Brazilian E-Commerce da
 
 ---
 
-## TODO / Project Status
+## Project status
 
-- [x] Star schema DW design + ETL pipeline
-- [x] PostgreSQL schema populated (112,650 fact rows)
-- [x] Report A — Olist Sellers Analysis (Power BI, single-page, 3 visuals + 2 slicers)
-- [ ] Report A polish: rename *"Average Revenue & Gross Profit"* with denominator clarity (per seller?), fix scatter title grammar, add a "Sellers per Tier" KPI card for context
-- [ ] Report B — Regional Profitability & Operational Cost *(in progress)*
-  - [ ] Annotate freight & delivery-days matrices so it's obvious that **rows = customer region** and **columns = seller region**
-- [ ] Dashboard *(logic to be finalized)*
-- [ ] OLAP Tool *(logic to be finalized)*
+| Deliverable | Status |
+|---|---|
+| **Dimensional warehouse + reproducible ETL** | ✅ 6 tables · 112,650 fact rows |
+| **Report A** — Delivery accountability (seller vs carrier) | ✅ Complete |
+| **Report B** — Regional freight & cost-to-serve | ✅ Built |
+| **OLAP** — Regional fulfilment & growth explorer | 🛠 In progress |
+| **Executive KPI dashboard** | 📋 Planned |
 
 ---
 
@@ -286,56 +285,28 @@ Every row is built by aggregating the matching rows from `fact_order_item`. The 
 
 ---
 
-## Getting Started
+## Run it locally
 
 <details>
-<summary><b>1 — Install Python packages</b></summary>
+<summary><b>Setup &amp; run</b> — ≈2 minutes</summary>
 <br>
 
 ```bash
+# 1 · dependencies
 pip install pandas psycopg2-binary numpy python-dotenv
-```
-</details>
 
-<details>
-<summary><b>2 — Download the dataset</b></summary>
-<br>
+# 2 · data — place the 7 Olist CSVs next to etl_load_dw.py
+#     https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
 
-1. Go to https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
-2. Download and extract the ZIP
-3. Place all 7 CSV files in this folder (next to `etl_load_dw.py`)
-</details>
+# 3 · schema — run the DDL on your PostgreSQL instance
+psql -f olist_dw_schema.sql
 
-<details>
-<summary><b>3 — Set up PostgreSQL</b></summary>
-<br>
+# 4 · credentials — create .env (gitignored)
+#     PG_DSN=dbname=postgres user=postgres password=*** host=127.0.0.1 port=5432
 
-1. Install [PostgreSQL](https://www.postgresql.org/download/) and open pgAdmin
-2. Open the Query Tool and run the full contents of `olist_dw_schema.sql`
-</details>
-
-<details>
-<summary><b>4 — Add your database connection</b></summary>
-<br>
-
-Create a file named `.env` in this folder:
-
-```
-PG_DSN=dbname=postgres user=postgres password=YOUR_PASSWORD host=127.0.0.1 port=5432
-```
-
-This file is excluded from Git and will never be pushed to GitHub.
-</details>
-
-<details>
-<summary><b>5 — Run the ETL</b></summary>
-<br>
-
-```bash
+# 5 · build the warehouse (~1–2 min, prints a row count per table)
 python etl_load_dw.py
 ```
-
-Takes about 1–2 minutes. Prints a row count per table when done.
 </details>
 
 ---
