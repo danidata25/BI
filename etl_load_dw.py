@@ -1,56 +1,61 @@
 #!/usr/bin/env python3
 """
-Olist DW ETL Script
-====================
-Reads the Kaggle Olist CSV files from the BI directory, transforms the data,
-and loads it into the olist_dw PostgreSQL schema.
+Olist DW ETL Script  -  ELT edition (Postgres does the work, not pandas)
+========================================================================
+This script loads the Kaggle Olist CSV files into the olist_dw star schema.
 
-Expected CSV files in the same folder as this script:
-  - olist_customers_dataset.csv
-  - olist_orders_dataset.csv
-  - olist_order_items_dataset.csv
-  - olist_products_dataset.csv
-  - olist_sellers_dataset.csv
-  - olist_order_reviews_dataset.csv
-  - product_category_name_translation.csv
+Design change vs. the original pandas version
+----------------------------------------------
+The first version read every CSV into a pandas DataFrame, transformed the
+data row-by-row in Python (merge / groupby / apply), and pushed the result
+back with execute_values. That keeps the whole dataset in the client's RAM
+and does the heavy joins/aggregations in a single Python process - it works,
+but it does not scale: at 10x-100x the data it becomes memory-bound and slow.
+
+This version follows the ELT pattern instead:
+  1. EXTRACT + LOAD - stream each CSV straight into a raw staging table with
+     Postgres COPY (the fastest bulk-load path there is; no row-by-row Python).
+  2. TRANSFORM - every join, aggregation and derivation runs as set-based SQL
+     inside Postgres (INSERT ... SELECT). The database engine, which is built
+     and indexed for exactly this, does the work; the Python process only
+     orchestrates and never holds the data.
+
+There is no pandas or numpy import anywhere in this file.
+
+Reproducibility note (synthetic columns)
+-----------------------------------------
+A few columns are synthetic (documented in the report): customer_age,
+customer_gender, customer_signup_date and seller_join_date. The pandas
+version generated these with a numpy seed. Here they are derived
+DETERMINISTICALLY from a hash of the natural business key (customer_unique_id
+/ seller_id), so a given key always yields the same value regardless of row
+order or run - a stronger form of reproducibility. The concrete values differ
+from the old numpy-seeded run, so the dimension tables must be reloaded (this
+script truncates and repopulates them). All non-synthetic data is unchanged.
 
 Usage:
-  1. Adjust DB_* constants below to match your pgAdmin connection
+  1. Set PG_DSN in the .env file next to this script.
   2. Run:  python etl_load_dw.py
 """
 
 import os
 import sys
-import random
-import numpy as np
-import pandas as pd
 import psycopg2
-from psycopg2.extras import execute_values
-from datetime import date, timedelta
 from dotenv import load_dotenv
 
 # Load .env from the same directory as this script
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 # ─────────────────────────────────────────────────────────────────────
-# DB CONNECTION  –  loaded from .env (PG_DSN)
+# CONFIG
 # ─────────────────────────────────────────────────────────────────────
-PG_DSN    = os.environ["PG_DSN"]   # e.g. "dbname=postgres user=postgres password=... host=127.0.0.1 port=5432"
-DB_SCHEMA = "olist_dw"
+PG_DSN     = os.environ["PG_DSN"]
+DW_SCHEMA  = "olist_dw"
+STG_SCHEMA = "olist_stg"
+DATA_DIR   = os.path.dirname(os.path.abspath(__file__))
 
 # ─────────────────────────────────────────────────────────────────────
-# PATHS
-# ─────────────────────────────────────────────────────────────────────
-DATA_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# ─────────────────────────────────────────────────────────────────────
-# REPRODUCIBILITY
-# ─────────────────────────────────────────────────────────────────────
-random.seed(42)
-np.random.seed(42)
-
-# ─────────────────────────────────────────────────────────────────────
-# LOOKUP TABLES
+# LOOKUPS  (kept in Python only to GENERATE SQL - not to process data)
 # ─────────────────────────────────────────────────────────────────────
 STATE_REGION = {
     "AM": "North",       "PA": "North",       "AC": "North",
@@ -63,7 +68,8 @@ STATE_REGION = {
     "PR": "South",       "SC": "South",       "RS": "South",
 }
 
-# Keyword → category group mapping (checked against translated category names)
+# Keyword → category group. First group whose keyword is a substring wins
+# (same precedence as the original Python dict order).
 CATEGORY_GROUP_KEYWORDS = {
     "Electronics":      ["electronics", "computer", "telephony", "tablet", "console", "game",
                          "audio", "watch", "signal", "portable"],
@@ -80,799 +86,479 @@ CATEGORY_GROUP_KEYWORDS = {
     "Other":            [],
 }
 
+# ─────────────────────────────────────────────────────────────────────
+# STAGING TABLES  (all columns TEXT - cast happens in the SQL transforms)
+# ─────────────────────────────────────────────────────────────────────
+STAGING = {
+    "stg_customers":   (["customer_id", "customer_unique_id", "customer_zip_code_prefix",
+                         "customer_city", "customer_state"],
+                        "olist_customers_dataset.csv"),
+    "stg_orders":      (["order_id", "customer_id", "order_status", "order_purchase_timestamp",
+                         "order_approved_at", "order_delivered_carrier_date",
+                         "order_delivered_customer_date", "order_estimated_delivery_date"],
+                        "olist_orders_dataset.csv"),
+    "stg_items":       (["order_id", "order_item_id", "product_id", "seller_id",
+                         "shipping_limit_date", "price", "freight_value"],
+                        "olist_order_items_dataset.csv"),
+    "stg_products":    (["product_id", "product_category_name", "product_name_lenght",
+                         "product_description_lenght", "product_photos_qty", "product_weight_g",
+                         "product_length_cm", "product_height_cm", "product_width_cm"],
+                        "olist_products_dataset.csv"),
+    "stg_sellers":     (["seller_id", "seller_zip_code_prefix", "seller_city", "seller_state"],
+                        "olist_sellers_dataset.csv"),
+    "stg_reviews":     (["review_id", "order_id", "review_score", "review_comment_title",
+                         "review_comment_message", "review_creation_date",
+                         "review_answer_timestamp"],
+                        "olist_order_reviews_dataset.csv"),
+    "stg_translation": (["product_category_name", "product_category_name_english"],
+                        "product_category_name_translation.csv"),
+}
 
-def category_to_group(cat: str) -> str:
-    if not cat:
-        return "Other"
-    c = str(cat).lower()
-    for group, keywords in CATEGORY_GROUP_KEYWORDS.items():
-        if any(kw in c for kw in keywords):
-            return group
-    return "Other"
-
-
-def price_band(price) -> str:
-    if pd.isna(price):
-        return "Unknown"
-    if price < 50:
-        return "Budget"
-    if price < 200:
-        return "Mid"
-    if price < 500:
-        return "Premium"
-    return "Luxury"
-
-
-# Ordinal rank for price_band so BI tools sort it Budget<Mid<Premium<Luxury
-# (alphabetical order would wrongly put Luxury second). Used as a Sort-By column.
-PRICE_BAND_RANK = {"Budget": 1, "Mid": 2, "Premium": 3, "Luxury": 4, "Unknown": 0}
-
-
-def nan_to_none(val):
-    """Convert numpy/pandas NaN/NaT to Python None, and numpy scalars to
-    Python native types so psycopg2 can serialize them correctly."""
-    if val is None:
-        return None
-    try:
-        if pd.isna(val):
-            return None
-    except (TypeError, ValueError):
-        pass
-    # Numpy integer → Python int
-    if isinstance(val, np.integer):
-        return int(val)
-    # Numpy float → Python float
-    if isinstance(val, np.floating):
-        return float(val)
-    # Numpy bool → Python bool
-    if isinstance(val, np.bool_):
-        return bool(val)
-    return val
+# ─────────────────────────────────────────────────────────────────────
+# SQL SNIPPET GENERATORS
+# ─────────────────────────────────────────────────────────────────────
+STATE_REGION_VALUES = ",".join(f"('{s}','{r}')" for s, r in STATE_REGION.items())
 
 
-def row_to_none(row):
-    """Apply nan_to_none to every element in a tuple/list."""
-    return tuple(nan_to_none(v) for v in row)
+def rnd(key_sql: str, salt: str) -> str:
+    """Deterministic pseudo-random value in [0,1) derived from a text key.
+    Uses md5(key||salt) → first 32 bits → normalized. Stable across runs."""
+    return (f"(((('x' || substr(md5({key_sql} || '{salt}'), 1, 8))::bit(32)::int)::bigint "
+            f"+ 2147483648)::numeric / 4294967296.0)")
+
+
+def group_case_sql(col: str) -> str:
+    """CASE expression mapping a category name to its product_category_group,
+    using literal substring matching (strpos) to mirror Python's `kw in name`."""
+    whens = []
+    for group, kws in CATEGORY_GROUP_KEYWORDS.items():
+        if not kws:
+            continue
+        conds = " OR ".join(f"strpos(lower({col}), '{kw}') > 0" for kw in kws)
+        whens.append(f"WHEN {conds} THEN '{group}'")
+    return "CASE " + "\n         ".join(whens) + "\n         ELSE 'Other' END"
 
 
 # ─────────────────────────────────────────────────────────────────────
-# DB HELPERS
+# TRANSFORM SQL  (each runs entirely inside Postgres)
 # ─────────────────────────────────────────────────────────────────────
-def get_conn():
-    conn = psycopg2.connect(PG_DSN)
-    conn.autocommit = False
-    return conn
+SQL_DIM_DATE = f"""
+INSERT INTO {DW_SCHEMA}.dim_date
+    (sk_date, date, day, month, month_name, quarter, year, day_of_week, is_weekend)
+WITH raw AS (
+    SELECT NULLIF(trim(order_purchase_timestamp),      '')::timestamp::date AS dt FROM {STG_SCHEMA}.stg_orders
+    UNION SELECT NULLIF(trim(order_approved_at),        '')::timestamp::date FROM {STG_SCHEMA}.stg_orders
+    UNION SELECT NULLIF(trim(order_delivered_carrier_date),  '')::timestamp::date FROM {STG_SCHEMA}.stg_orders
+    UNION SELECT NULLIF(trim(order_delivered_customer_date), '')::timestamp::date FROM {STG_SCHEMA}.stg_orders
+    UNION SELECT NULLIF(trim(order_estimated_delivery_date), '')::timestamp::date FROM {STG_SCHEMA}.stg_orders
+),
+bounds AS (SELECT min(dt) AS mn, max(dt) AS mx FROM raw WHERE dt IS NOT NULL),
+days AS (
+    SELECT generate_series(mn, mx, interval '1 day')::date AS dt FROM bounds
+)
+SELECT to_char(dt, 'YYYYMMDD')::int,
+       dt,
+       extract(day   FROM dt)::smallint,
+       extract(month FROM dt)::smallint,
+       trim(to_char(dt, 'Month')),
+       extract(quarter FROM dt)::smallint,
+       extract(year  FROM dt)::smallint,
+       trim(to_char(dt, 'Day')),
+       (extract(dow FROM dt) IN (0, 6))
+FROM days;
+"""
 
+SQL_DIM_CUSTOMER = f"""
+INSERT INTO {DW_SCHEMA}.dim_customer
+    (customer_unique_id, customer_city, customer_state, customer_region,
+     customer_age, customer_age_group, customer_gender, customer_signup_date, customer_segment)
+WITH cust AS (
+    SELECT c.customer_unique_id AS cuid,
+           min(c.customer_city)  AS city,
+           min(c.customer_state) AS state,
+           count(o.order_purchase_timestamp) AS order_count,
+           min(NULLIF(trim(o.order_purchase_timestamp), '')::timestamp) AS first_order
+    FROM {STG_SCHEMA}.stg_customers c
+    LEFT JOIN {STG_SCHEMA}.stg_orders o ON o.customer_id = c.customer_id
+    GROUP BY c.customer_unique_id
+),
+enr AS (
+    SELECT cuid, city, state, order_count, first_order,
+           (18 + floor({rnd('cuid', 'age')} * 53))::int AS age,
+           CASE WHEN {rnd('cuid', 'gender')} < 0.48 THEN 'M' ELSE 'F' END AS gender,
+           (first_order::date - (60 + floor({rnd('cuid', 'signup')} * 671))::int) AS signup_date
+    FROM cust
+)
+SELECT enr.cuid, enr.city, enr.state,
+       COALESCE(sr.region, 'Other'),
+       enr.age::smallint,
+       CASE WHEN enr.age <= 24 THEN '18-24'
+            WHEN enr.age <= 34 THEN '25-34'
+            WHEN enr.age <= 44 THEN '35-44'
+            WHEN enr.age <= 54 THEN '45-54'
+            WHEN enr.age <= 64 THEN '55-64'
+            ELSE '65+' END,
+       enr.gender,
+       enr.signup_date,
+       CASE WHEN enr.order_count = 1 THEN 'Occasional'
+            WHEN enr.order_count <= 4 THEN 'Regular'
+            ELSE 'Loyal' END
+FROM enr
+LEFT JOIN (VALUES {STATE_REGION_VALUES}) AS sr(state, region) ON sr.state = enr.state
+ORDER BY enr.cuid;
+"""
 
-def truncate_table(cur, table: str):
-    cur.execute(f"TRUNCATE TABLE {DB_SCHEMA}.{table} CASCADE")
+SQL_DIM_SELLER = f"""
+INSERT INTO {DW_SCHEMA}.dim_seller
+    (seller_id, seller_city, seller_state, seller_region, seller_main_category,
+     seller_size_category, seller_tier, seller_join_date, seller_plan,
+     subscription_fee_monthly, commission_rate, payment_rate,
+     active_months, subscription_revenue_total)
+WITH itmcat AS (
+    SELECT i.seller_id,
+           i.order_item_id,
+           i.price::numeric AS price,
+           COALESCE(t.product_category_name_english, p.product_category_name) AS category_en
+    FROM {STG_SCHEMA}.stg_items i
+    LEFT JOIN {STG_SCHEMA}.stg_products p    ON p.product_id = i.product_id
+    LEFT JOIN {STG_SCHEMA}.stg_translation t ON t.product_category_name = p.product_category_name
+),
+seller_agg AS (
+    SELECT seller_id,
+           count(order_item_id) AS total_items,
+           sum(price)           AS total_revenue,
+           mode() WITHIN GROUP (ORDER BY category_en) AS main_category
+    FROM itmcat GROUP BY seller_id
+),
+span AS (
+    SELECT seller_id,
+           min(NULLIF(trim(shipping_limit_date), '')::timestamp) AS dmin,
+           max(NULLIF(trim(shipping_limit_date), '')::timestamp) AS dmax
+    FROM {STG_SCHEMA}.stg_items GROUP BY seller_id
+),
+base AS (
+    SELECT s.seller_id, s.seller_city, s.seller_state,
+           COALESCE(sr.region, 'Other') AS region,
+           sa.main_category, sa.total_items, sa.total_revenue,
+           CASE WHEN sp.dmin IS NULL OR sp.dmax IS NULL THEN 1
+                ELSE GREATEST(1, (extract(year  FROM sp.dmax) - extract(year  FROM sp.dmin))::int * 12
+                              + (extract(month FROM sp.dmax) - extract(month FROM sp.dmin))::int + 1)
+           END AS active_months,
+           (DATE '2016-09-01' - (30 + floor({rnd('s.seller_id', 'join')} * 1066))::int) AS join_date
+    FROM {STG_SCHEMA}.stg_sellers s
+    LEFT JOIN seller_agg sa ON sa.seller_id = s.seller_id
+    LEFT JOIN span sp        ON sp.seller_id = s.seller_id
+    LEFT JOIN (VALUES {STATE_REGION_VALUES}) AS sr(state, region) ON sr.state = s.seller_state
+),
+plans AS (
+    SELECT base.*,
+           CASE WHEN COALESCE(total_items, 0) >= 500 THEN 'Enterprise'
+                WHEN COALESCE(total_items, 0) >= 50  THEN 'Pro'
+                WHEN COALESCE(total_items, 0) >= 10  THEN 'Starter'
+                ELSE 'Free' END AS plan,
+           CASE WHEN COALESCE(total_items, 0) >= 500 THEN 699.00
+                WHEN COALESCE(total_items, 0) >= 50  THEN 299.00
+                WHEN COALESCE(total_items, 0) >= 10  THEN 99.00
+                ELSE 0.00 END AS fee,
+           CASE WHEN COALESCE(total_items, 0) >= 500 THEN 0.1000
+                WHEN COALESCE(total_items, 0) >= 50  THEN 0.1300
+                WHEN COALESCE(total_items, 0) >= 10  THEN 0.1600
+                ELSE 0.2000 END AS commission,
+           CASE WHEN COALESCE(total_items, 0) >= 500 THEN 0.0247
+                WHEN COALESCE(total_items, 0) >= 50  THEN 0.0277
+                WHEN COALESCE(total_items, 0) >= 10  THEN 0.0287
+                ELSE 0.0297 END AS payment
+    FROM base
+)
+SELECT seller_id, seller_city, seller_state, region, main_category,
+       CASE WHEN total_items IS NULL OR total_items < 50 THEN 'Small'
+            WHEN total_items < 500 THEN 'Medium'
+            ELSE 'Large' END,
+       CASE WHEN total_revenue IS NULL OR total_revenue < 5000 THEN 'Bronze'
+            WHEN total_revenue < 50000 THEN 'Silver'
+            ELSE 'Gold' END,
+       join_date, plan, fee, commission, payment,
+       active_months::smallint,
+       round(fee * active_months, 2)
+FROM plans
+ORDER BY seller_id;
+"""
 
+SQL_DIM_PRODUCT = f"""
+INSERT INTO {DW_SCHEMA}.dim_product
+    (product_id, product_category, product_category_group, list_price,
+     price_band, price_band_rank, unit_cost, is_premium)
+WITH avgp AS (
+    SELECT product_id, avg(price::numeric) AS list_price
+    FROM {STG_SCHEMA}.stg_items GROUP BY product_id
+),
+base AS (
+    SELECT p.product_id,
+           COALESCE(t.product_category_name_english, p.product_category_name) AS category,
+           round(a.list_price, 2) AS list_price
+    FROM {STG_SCHEMA}.stg_products p
+    LEFT JOIN {STG_SCHEMA}.stg_translation t ON t.product_category_name = p.product_category_name
+    LEFT JOIN avgp a ON a.product_id = p.product_id
+)
+SELECT product_id,
+       category,
+       {group_case_sql('category')},
+       list_price,
+       CASE WHEN list_price IS NULL THEN 'Unknown'
+            WHEN list_price < 50   THEN 'Budget'
+            WHEN list_price < 200  THEN 'Mid'
+            WHEN list_price < 500  THEN 'Premium'
+            ELSE 'Luxury' END,
+       CASE WHEN list_price IS NULL THEN 0
+            WHEN list_price < 50   THEN 1
+            WHEN list_price < 200  THEN 2
+            WHEN list_price < 500  THEN 3
+            ELSE 4 END,
+       round(list_price * 0.60, 2),
+       (COALESCE(list_price, -1) >= 500)
+FROM base
+ORDER BY product_id;
+"""
 
-def bulk_insert(cur, table: str, columns: list, rows: list, page_size: int = 2000):
-    if not rows:
-        print(f"  [SKIP] {table} – no rows to insert")
-        return
-    col_str = ", ".join(columns)
-    sql = f"INSERT INTO {DB_SCHEMA}.{table} ({col_str}) VALUES %s ON CONFLICT DO NOTHING"
-    execute_values(cur, sql, rows, page_size=page_size)
-    print(f"  [OK]   {table}: {len(rows):,} rows")
+SQL_FACT_ORDER_ITEM = f"""
+INSERT INTO {DW_SCHEMA}.fact_order_item
+    (order_id, order_item_id, sk_date_purchase, sk_date_carrier, sk_date_delivered,
+     sk_date_estimated_delivery, sk_customer, sk_seller, sk_product,
+     price, freight_value, revenue, gross_profit, unit_cost,
+     delivery_days, seller_handling_days, payment_approval_days, seller_prep_days,
+     carrier_transit_days, is_on_time, review_score)
+WITH best_review AS (
+    SELECT order_id, max(review_score::int) AS review_score
+    FROM {STG_SCHEMA}.stg_reviews
+    WHERE NULLIF(trim(review_score), '') IS NOT NULL
+    GROUP BY order_id
+),
+base AS (
+    SELECT i.order_id,
+           i.order_item_id::smallint AS order_item_id,
+           NULLIF(trim(o.order_purchase_timestamp),      '')::timestamp AS purchase_ts,
+           NULLIF(trim(o.order_approved_at),             '')::timestamp AS approved_ts,
+           NULLIF(trim(o.order_delivered_carrier_date),  '')::timestamp AS carrier_ts,
+           NULLIF(trim(o.order_delivered_customer_date), '')::timestamp AS delivered_ts,
+           NULLIF(trim(o.order_estimated_delivery_date), '')::timestamp AS estimated_ts,
+           i.price::numeric         AS price,
+           i.freight_value::numeric AS freight_value,
+           dc.sk_customer, ds.sk_seller, dp.sk_product, dp.unit_cost,
+           br.review_score::smallint AS review_score
+    FROM {STG_SCHEMA}.stg_items i
+    JOIN {STG_SCHEMA}.stg_orders o     ON o.order_id = i.order_id
+    LEFT JOIN {STG_SCHEMA}.stg_customers c ON c.customer_id = o.customer_id
+    LEFT JOIN {DW_SCHEMA}.dim_customer dc  ON dc.customer_unique_id = c.customer_unique_id
+    LEFT JOIN {DW_SCHEMA}.dim_seller ds    ON ds.seller_id = i.seller_id
+    LEFT JOIN {DW_SCHEMA}.dim_product dp    ON dp.product_id = i.product_id
+    LEFT JOIN best_review br               ON br.order_id = i.order_id
+),
+calc AS (
+    SELECT base.*,
+           to_char(purchase_ts,  'YYYYMMDD')::int AS sk_date_purchase,
+           to_char(carrier_ts,   'YYYYMMDD')::int AS sk_date_carrier,
+           to_char(delivered_ts, 'YYYYMMDD')::int AS sk_date_delivered,
+           to_char(estimated_ts, 'YYYYMMDD')::int AS sk_date_estimated_delivery,
+           CASE WHEN delivered_ts IS NOT NULL AND purchase_ts IS NOT NULL
+                THEN floor(extract(epoch FROM (delivered_ts - purchase_ts)) / 86400)::int END AS delivery_days,
+           CASE WHEN carrier_ts IS NOT NULL AND purchase_ts IS NOT NULL
+                THEN floor(extract(epoch FROM (carrier_ts - purchase_ts)) / 86400)::int END AS seller_handling_days
+    FROM base
+),
+calc2 AS (
+    SELECT calc.*,
+           CASE WHEN seller_handling_days IS NULL THEN NULL
+                WHEN approved_ts IS NULL OR purchase_ts IS NULL THEN 0
+                ELSE GREATEST(0, LEAST(
+                        floor(extract(epoch FROM (approved_ts - purchase_ts)) / 86400)::int,
+                        seller_handling_days))
+           END AS payment_approval_days
+    FROM calc
+),
+calc3 AS (
+    SELECT calc2.*,
+           CASE WHEN seller_handling_days IS NOT NULL AND payment_approval_days IS NOT NULL
+                THEN seller_handling_days - payment_approval_days END AS seller_prep_days,
+           CASE WHEN delivery_days IS NOT NULL AND seller_handling_days IS NOT NULL
+                THEN delivery_days - seller_handling_days END AS carrier_transit_days,
+           CASE WHEN delivered_ts IS NULL OR estimated_ts IS NULL THEN NULL
+                WHEN delivered_ts <= estimated_ts THEN 1 ELSE 0 END AS is_on_time
+    FROM calc2
+)
+SELECT order_id, order_item_id,
+       sk_date_purchase, sk_date_carrier, sk_date_delivered, sk_date_estimated_delivery,
+       sk_customer, sk_seller, sk_product,
+       round(price, 2), round(freight_value, 2), round(price + freight_value, 2),
+       round(price - COALESCE(unit_cost, 0), 2), unit_cost,
+       delivery_days::smallint, seller_handling_days::smallint, payment_approval_days::smallint,
+       seller_prep_days::smallint, carrier_transit_days::smallint,
+       is_on_time::smallint, review_score
+FROM calc3
+WHERE sk_date_purchase IS NOT NULL
+  AND sk_customer IS NOT NULL
+  AND sk_seller   IS NOT NULL
+  AND sk_product  IS NOT NULL;
+"""
+
+SQL_FACT_DAILY = f"""
+INSERT INTO {DW_SCHEMA}.fact_daily_seller_category
+    (sk_date, sk_seller, sk_product_category, orders_count, items_count,
+     revenue_total, freight_total, gross_profit_total, on_time_deliveries,
+     delivered_items, review_score_sum, reviews_count)
+WITH foi AS (
+    SELECT f.*, COALESCE(dp.product_category, 'Unknown') AS product_category
+    FROM {DW_SCHEMA}.fact_order_item f
+    JOIN {DW_SCHEMA}.dim_product dp ON dp.sk_product = f.sk_product
+),
+cat_map AS (
+    SELECT product_category,
+           row_number() OVER (ORDER BY product_category) AS sk_product_category
+    FROM (SELECT DISTINCT product_category FROM foi) d
+)
+SELECT f.sk_date_purchase,
+       f.sk_seller,
+       cm.sk_product_category,
+       count(DISTINCT f.order_id),
+       count(*),
+       round(sum(f.revenue), 2),
+       round(sum(f.freight_value), 2),
+       round(sum(f.gross_profit), 2),
+       sum(CASE WHEN f.is_on_time = 1 THEN 1 ELSE 0 END),
+       count(f.sk_date_delivered),
+       sum(f.review_score),
+       count(f.review_score)
+FROM foi f
+JOIN cat_map cm ON cm.product_category = f.product_category
+GROUP BY f.sk_date_purchase, f.sk_seller, cm.sk_product_category;
+"""
+
+SQL_FACT_SUBSCRIPTION = f"""
+INSERT INTO {DW_SCHEMA}.fact_seller_subscription (sk_seller, sk_date, subscription_amount)
+WITH span AS (
+    SELECT seller_id,
+           min(NULLIF(trim(shipping_limit_date), '')::timestamp) AS dmin,
+           max(NULLIF(trim(shipping_limit_date), '')::timestamp) AS dmax
+    FROM {STG_SCHEMA}.stg_items GROUP BY seller_id
+),
+seller_fee AS (
+    SELECT ds.sk_seller, ds.subscription_fee_monthly AS fee, span.dmin, span.dmax
+    FROM span
+    JOIN {DW_SCHEMA}.dim_seller ds ON ds.seller_id = span.seller_id
+    WHERE ds.subscription_fee_monthly > 0 AND span.dmin IS NOT NULL AND span.dmax IS NOT NULL
+),
+months AS (
+    SELECT sk_seller, fee,
+           generate_series(date_trunc('month', dmin), date_trunc('month', dmax),
+                           interval '1 month')::date AS mstart
+    FROM seller_fee
+),
+bounds AS (SELECT min(sk_date) AS sk_lo, max(sk_date) AS sk_hi FROM {DW_SCHEMA}.dim_date),
+resolved AS (
+    SELECT m.sk_seller, m.fee,
+           COALESCE(
+               (SELECT min(d.sk_date) FROM {DW_SCHEMA}.dim_date d
+                 WHERE d.year  = extract(year  FROM m.mstart)::int
+                   AND d.month = extract(month FROM m.mstart)::int),
+               CASE WHEN (extract(year FROM m.mstart) * 10000
+                          + extract(month FROM m.mstart) * 100 + 1) < b.sk_lo
+                    THEN b.sk_lo ELSE b.sk_hi END
+           ) AS sk_date
+    FROM months m CROSS JOIN bounds b
+)
+SELECT sk_seller, sk_date, round(sum(fee), 2)
+FROM resolved
+GROUP BY sk_seller, sk_date;
+"""
+
+TRANSFORMS = [
+    ("dim_date",                   SQL_DIM_DATE),
+    ("dim_customer",               SQL_DIM_CUSTOMER),
+    ("dim_seller",                 SQL_DIM_SELLER),
+    ("dim_product",                SQL_DIM_PRODUCT),
+    ("fact_order_item",            SQL_FACT_ORDER_ITEM),
+    ("fact_daily_seller_category", SQL_FACT_DAILY),
+    ("fact_seller_subscription",   SQL_FACT_SUBSCRIPTION),
+]
+
+DW_TABLES = ["dim_date", "dim_customer", "dim_seller", "dim_product",
+             "fact_order_item", "fact_daily_seller_category", "fact_seller_subscription"]
 
 
 # ─────────────────────────────────────────────────────────────────────
-# LOAD CSVs
+# STEPS
 # ─────────────────────────────────────────────────────────────────────
-def load_csvs() -> dict:
-    files = {
-        "customers":    "olist_customers_dataset.csv",
-        "orders":       "olist_orders_dataset.csv",
-        "items":        "olist_order_items_dataset.csv",
-        "products":     "olist_products_dataset.csv",
-        "sellers":      "olist_sellers_dataset.csv",
-        "reviews":      "olist_order_reviews_dataset.csv",
-        "translation":  "product_category_name_translation.csv",
-    }
-    dfs = {}
-    for key, fname in files.items():
+def build_staging(cur):
+    print("\n[1] Rebuilding staging schema and COPYing raw CSVs...")
+    cur.execute(f"DROP SCHEMA IF EXISTS {STG_SCHEMA} CASCADE")
+    cur.execute(f"CREATE SCHEMA {STG_SCHEMA}")
+    for table, (cols, fname) in STAGING.items():
+        col_ddl = ", ".join(f"{c} TEXT" for c in cols)
+        cur.execute(f"CREATE TABLE {STG_SCHEMA}.{table} ({col_ddl})")
         path = os.path.join(DATA_DIR, fname)
         if not os.path.exists(path):
-            print(f"  [WARN] Missing file: {fname}  →  skipping")
-            dfs[key] = pd.DataFrame()
-        else:
-            dfs[key] = pd.read_csv(path, low_memory=False)
-            print(f"  [CSV] {fname}: {len(dfs[key]):,} rows")
-    return dfs
+            print(f"  [WARN] Missing file: {fname}  →  {table} left empty")
+            continue
+        with open(path, "r", encoding="utf-8", newline="") as fh:
+            cur.copy_expert(
+                f"COPY {STG_SCHEMA}.{table} FROM STDIN WITH (FORMAT csv, HEADER true)", fh)
+        cur.execute(f"SELECT count(*) FROM {STG_SCHEMA}.{table}")
+        print(f"  [COPY] {table:<16} {cur.fetchone()[0]:>10,} rows  ({fname})")
 
 
-# ─────────────────────────────────────────────────────────────────────
-# STEP 1 – dim_date
-# ─────────────────────────────────────────────────────────────────────
-def build_dim_date(orders: pd.DataFrame) -> list:
-    """
-    Collect every date referenced in orders, then generate a dim_date row
-    for each calendar day in the min–max range.
-    sk_date = YYYYMMDD integer (e.g. 20180101 → 20180101).
-    """
-    date_cols = [
-        "order_purchase_timestamp",
-        "order_approved_at",
-        "order_delivered_carrier_date",
-        "order_delivered_customer_date",
-        "order_estimated_delivery_date",
-    ]
-    all_dates = set()
-    for col in date_cols:
-        if col in orders.columns:
-            parsed = pd.to_datetime(orders[col], errors="coerce").dropna().dt.date
-            all_dates.update(parsed)
+def truncate_dw(cur):
+    print("\n[2] Truncating warehouse tables (RESTART IDENTITY CASCADE)...")
+    tbls = ", ".join(f"{DW_SCHEMA}.{t}" for t in DW_TABLES)
+    cur.execute(f"TRUNCATE TABLE {tbls} RESTART IDENTITY CASCADE")
 
-    if not all_dates:
-        print("  [WARN] No dates found in orders – dim_date will be empty")
-        return []
 
-    min_date = min(all_dates)
-    max_date = max(all_dates)
+def run_transforms(cur, conn):
+    print("\n[3] Running SQL transforms (Postgres does the work)...")
+    for i, (name, sql) in enumerate(TRANSFORMS, start=1):
+        cur.execute(sql)
+        conn.commit()
+        cur.execute(f"SELECT count(*) FROM {DW_SCHEMA}.{name}")
+        print(f"  [{i}/{len(TRANSFORMS)}] {name:<28} {cur.fetchone()[0]:>10,} rows")
 
-    rows = []
-    current = min_date
-    while current <= max_date:
-        sk = int(current.strftime("%Y%m%d"))
-        rows.append((
-            sk,
-            current,
-            current.day,
-            current.month,
-            current.strftime("%B"),
-            (current.month - 1) // 3 + 1,
-            current.year,
-            current.strftime("%A"),
-            current.weekday() >= 5,
-        ))
-        current += timedelta(days=1)
 
-    print(f"  [dim_date] date range: {min_date} – {max_date}  →  {len(rows):,} rows")
-    return rows
+def drop_staging(cur):
+    cur.execute(f"DROP SCHEMA IF EXISTS {STG_SCHEMA} CASCADE")
 
 
-# ─────────────────────────────────────────────────────────────────────
-# STEP 2 – dim_customer
-# ─────────────────────────────────────────────────────────────────────
-def build_dim_customer(customers: pd.DataFrame, orders: pd.DataFrame) -> pd.DataFrame:
-    """
-    One row per customer_unique_id.
-    Simulated fields (documented): customer_age, customer_age_group,
-    customer_gender, customer_signup_date, customer_segment.
-    """
-    # First order date per unique customer (for segment + signup_date simulation)
-    cust_orders = customers.merge(
-        orders[["customer_id", "order_purchase_timestamp"]],
-        on="customer_id", how="left"
-    )
-    cust_orders["order_purchase_timestamp"] = pd.to_datetime(
-        cust_orders["order_purchase_timestamp"], errors="coerce"
-    )
-
-    agg = cust_orders.groupby("customer_unique_id").agg(
-        customer_city=("customer_city", "first"),
-        customer_state=("customer_state", "first"),
-        order_count=("order_purchase_timestamp", "count"),
-        first_order=("order_purchase_timestamp", "min"),
-    ).reset_index()
-
-    # Region
-    agg["customer_region"] = agg["customer_state"].map(STATE_REGION).fillna("Other")
-
-    # ── Simulated fields ──────────────────────────────────────────────
-    n = len(agg)
-    # Age: uniform 18–70, seeded for reproducibility
-    ages = np.random.randint(18, 71, size=n)
-    agg["customer_age"] = ages
-    agg["customer_age_group"] = pd.cut(
-        agg["customer_age"],
-        bins=[0, 24, 34, 44, 54, 64, 100],
-        labels=["18-24", "25-34", "35-44", "45-54", "55-64", "65+"]
-    ).astype(str)
-    agg["customer_gender"] = np.random.choice(["M", "F"], size=n, p=[0.48, 0.52])
-
-    # Signup date: 60–730 days before first order (or fixed fallback)
-    def random_signup(first_order_ts):
-        if pd.isna(first_order_ts):
-            return None
-        delta = random.randint(60, 730)
-        return (first_order_ts - timedelta(days=delta)).date()
-
-    agg["customer_signup_date"] = agg["first_order"].apply(random_signup)
-
-    # Segment: based on order count
-    def segment(cnt):
-        if cnt == 1:
-            return "Occasional"
-        if cnt <= 4:
-            return "Regular"
-        return "Loyal"
-
-    agg["customer_segment"] = agg["order_count"].apply(segment)
-    # ─────────────────────────────────────────────────────────────────
-
-    return agg
-
-
-# ─────────────────────────────────────────────────────────────────────
-# STEP 3 – dim_seller
-# ─────────────────────────────────────────────────────────────────────
-def build_dim_seller(sellers: pd.DataFrame, items: pd.DataFrame,
-                     products: pd.DataFrame, translation: pd.DataFrame) -> pd.DataFrame:
-    """
-    One row per seller_id.
-    Simulated fields: seller_join_date; seller_plan and its bundled fee/rates.
-    Derived fields:   seller_main_category, seller_size_category, seller_tier,
-                      active_months, subscription_revenue_total.
-    """
-    # Translate category names
-    if not translation.empty and "product_category_name" in translation.columns:
-        cat_map = translation.set_index("product_category_name")["product_category_name_english"].to_dict()
-    else:
-        cat_map = {}
-
-    # Join items → products to get category per item
-    if not products.empty and "product_category_name" in products.columns:
-        prod_cat = products[["product_id", "product_category_name"]].copy()
-        prod_cat["product_category_en"] = prod_cat["product_category_name"].map(cat_map).fillna(
-            prod_cat["product_category_name"]
-        )
-        items_cat = items.merge(prod_cat[["product_id", "product_category_en"]], on="product_id", how="left")
-    else:
-        items_cat = items.copy()
-        items_cat["product_category_en"] = "Unknown"
-
-    # Main category per seller = most frequent category sold
-    main_cat = (
-        items_cat.groupby("seller_id")["product_category_en"]
-        .agg(lambda x: x.mode().iloc[0] if len(x.mode()) > 0 else "Unknown")
-        .reset_index()
-        .rename(columns={"product_category_en": "seller_main_category"})
-    )
-
-    # Volume stats per seller for tier / size
-    seller_stats = items_cat.groupby("seller_id").agg(
-        total_items=("order_item_id", "count"),
-        total_revenue=("price", "sum"),
-    ).reset_index()
-
-    df = sellers.merge(main_cat, on="seller_id", how="left")
-    df = df.merge(seller_stats, on="seller_id", how="left")
-
-    df["seller_region"] = df["seller_state"].map(STATE_REGION).fillna("Other")
-
-    # Size category (by item count)
-    def size_cat(cnt):
-        if pd.isna(cnt) or cnt < 50:
-            return "Small"
-        if cnt < 500:
-            return "Medium"
-        return "Large"
-
-    df["seller_size_category"] = df["total_items"].apply(size_cat)
-
-    # Tier (by revenue)
-    def tier(rev):
-        if pd.isna(rev) or rev < 5000:
-            return "Bronze"
-        if rev < 50000:
-            return "Silver"
-        return "Gold"
-
-    df["seller_tier"] = df["total_revenue"].apply(tier)
-
-    # Simulated: join_date = 1–3 years before dataset start (2016-09-01)
-    dataset_start = date(2016, 9, 1)
-    n = len(df)
-    df["seller_join_date"] = [
-        dataset_start - timedelta(days=random.randint(30, 1095)) for _ in range(n)
-    ]
-
-    # ── Synthetic subscription plan (DISCLOSED synthetic data) ────────────
-    # Each seller is assigned a plan by sales volume. A plan bundles a monthly
-    # SaaS fee, a marketplace commission rate, and a payment-processing rate.
-    # These values are SYNTHETIC, modelled on Olist's published pricing model;
-    # only the R$5/item fee (applied in the fact) is exact.
-    #   min_items  plan         monthly_fee  commission  payment
-    PLAN_BY_VOLUME = [
-        (500, "Enterprise", 699.00, 0.10, 0.0247),
-        (50,  "Pro",        299.00, 0.13, 0.0277),
-        (10,  "Starter",     99.00, 0.16, 0.0287),
-        (0,   "Free",         0.00, 0.20, 0.0297),
-    ]
-
-    def assign_plan(cnt):
-        c = 0 if pd.isna(cnt) else cnt
-        for min_items, plan, fee, comm, pay in PLAN_BY_VOLUME:
-            if c >= min_items:
-                return pd.Series([plan, fee, comm, pay])
-        return pd.Series(["Free", 0.00, 0.20, 0.0297])
-
-    df[["seller_plan", "subscription_fee_monthly",
-        "commission_rate", "payment_rate"]] = df["total_items"].apply(assign_plan)
-
-    # active_months = inclusive month span of the seller's activity, using
-    # shipping_limit_date (present in items) as the order-timing proxy.
-    itm = items.copy()
-    itm["shipping_limit_date"] = pd.to_datetime(itm["shipping_limit_date"], errors="coerce")
-    span = itm.groupby("seller_id")["shipping_limit_date"].agg(["min", "max"]).reset_index()
-
-    def months_between(row):
-        a, b = row["min"], row["max"]
-        if pd.isna(a) or pd.isna(b):
-            return 1
-        return max(1, (b.year - a.year) * 12 + (b.month - a.month) + 1)
-
-    span["active_months"] = span.apply(months_between, axis=1)
-    df = df.merge(span[["seller_id", "active_months"]], on="seller_id", how="left")
-    df["active_months"] = df["active_months"].fillna(1).astype(int)
-    df["subscription_revenue_total"] = (
-        df["subscription_fee_monthly"] * df["active_months"]
-    ).round(2)
-
-    return df
-
-
-# ─────────────────────────────────────────────────────────────────────
-# STEP 4 – dim_product
-# ─────────────────────────────────────────────────────────────────────
-def build_dim_product(products: pd.DataFrame, items: pd.DataFrame,
-                      translation: pd.DataFrame) -> pd.DataFrame:
-    """
-    One row per product_id.
-    list_price    = average price across all order items for that product.
-    unit_cost     = list_price * 0.60  (assumed 40% gross margin).
-    price_band    = derived from list_price.
-    is_premium    = list_price >= 500.
-    """
-    if not translation.empty and "product_category_name" in translation.columns:
-        cat_map = translation.set_index("product_category_name")["product_category_name_english"].to_dict()
-    else:
-        cat_map = {}
-
-    # Average price per product from order items
-    avg_price = items.groupby("product_id")["price"].mean().reset_index().rename(
-        columns={"price": "list_price"}
-    )
-
-    df = products[["product_id", "product_category_name"]].copy()
-    df["product_category"] = df["product_category_name"].map(cat_map).fillna(df["product_category_name"])
-    df["product_category_group"] = df["product_category"].apply(category_to_group)
-    df = df.merge(avg_price, on="product_id", how="left")
-    df["list_price"] = df["list_price"].round(2)
-    df["unit_cost"] = (df["list_price"] * 0.60).round(2)
-    df["price_band"] = df["list_price"].apply(price_band)
-    df["price_band_rank"] = df["price_band"].map(PRICE_BAND_RANK)
-    df["is_premium"] = df["list_price"] >= 500
-
-    return df
-
-
-# ─────────────────────────────────────────────────────────────────────
-# STEP 5 – fact_order_item
-# ─────────────────────────────────────────────────────────────────────
-def build_fact_order_item(
-    orders: pd.DataFrame,
-    items: pd.DataFrame,
-    customers: pd.DataFrame,
-    reviews: pd.DataFrame,
-    dim_customer_df: pd.DataFrame,
-    dim_seller_df: pd.DataFrame,
-    dim_product_df: pd.DataFrame,
-) -> list:
-    """
-    One row per (order_id, order_item_id).
-    revenue              = price + freight_value
-    gross_profit         = price - unit_cost
-    delivery_days        = (delivered - purchase).days  (total, authoritative)
-    seller_handling_days = (carrier_handoff - purchase).days   (SELLER phase)
-    payment_approval_days= (approved - purchase).days, clamped  (PAYMENT sub-phase)
-    seller_prep_days     = seller_handling_days - payment_approval_days (SELLER prep sub-phase)
-    carrier_transit_days = delivery_days - seller_handling_days (CARRIER phase, remainder)
-                           -> payment + prep + carrier == delivery_days per row
-    is_on_time           = 1 if delivered <= estimated else 0
-    review_score         = from order_reviews (first review per order)
-    """
-    # Parse dates
-    for col in ["order_purchase_timestamp", "order_approved_at",
-                "order_delivered_carrier_date",
-                "order_delivered_customer_date",
-                "order_estimated_delivery_date"]:
-        orders[col] = pd.to_datetime(orders[col], errors="coerce")
-
-    # Best review per order
-    if not reviews.empty and "order_id" in reviews.columns:
-        rev = reviews.sort_values("review_score", ascending=False).drop_duplicates("order_id")
-        rev = rev[["order_id", "review_score"]]
-    else:
-        rev = pd.DataFrame(columns=["order_id", "review_score"])
-
-    # customer_unique_id → sk_customer lookup
-    cust_sk = customers[["customer_id", "customer_unique_id"]].merge(
-        dim_customer_df[["customer_unique_id", "sk_customer"]],
-        on="customer_unique_id", how="left"
-    )[["customer_id", "sk_customer"]]
-
-    # seller_id → sk_seller lookup
-    seller_sk = dim_seller_df[["seller_id", "sk_seller"]].copy()
-
-    # product_id → sk_product + unit_cost lookup
-    product_sk = dim_product_df[["product_id", "sk_product", "unit_cost"]].copy()
-
-    # Date → sk_date lookup (YYYYMMDD int)
-    def date_to_sk(dt):
-        if pd.isna(dt):
-            return None
-        return int(dt.strftime("%Y%m%d"))
-
-    # Build fact rows
-    fact = items.merge(
-        orders[["order_id", "customer_id", "order_purchase_timestamp", "order_approved_at",
-                "order_delivered_carrier_date",
-                "order_delivered_customer_date", "order_estimated_delivery_date"]],
-        on="order_id", how="left"
-    )
-    fact = fact.merge(rev, on="order_id", how="left")
-    fact = fact.merge(cust_sk, on="customer_id", how="left")
-    fact = fact.merge(seller_sk, on="seller_id", how="left")
-    fact = fact.merge(product_sk, on="product_id", how="left")
-
-    # Derived measures
-    fact["revenue"] = (fact["price"] + fact["freight_value"]).round(2)
-    fact["gross_profit"] = (fact["price"] - fact["unit_cost"].fillna(0)).round(2)
-
-    purchase_date = fact["order_purchase_timestamp"].dt.date
-    delivered_date = fact["order_delivered_customer_date"].dt.date
-    estimated_date = fact["order_estimated_delivery_date"].dt.date
-
-    fact["sk_date_purchase"] = purchase_date.apply(
-        lambda d: None if pd.isna(d) else int(d.strftime("%Y%m%d"))
-    )
-    fact["sk_date_carrier"] = fact["order_delivered_carrier_date"].apply(date_to_sk)
-    fact["sk_date_delivered"] = fact["order_delivered_customer_date"].apply(date_to_sk)
-    fact["sk_date_estimated_delivery"] = fact["order_estimated_delivery_date"].apply(date_to_sk)
-
-    # delivery_days (total: purchase -> customer)
-    def calc_delivery(row):
-        if pd.isna(row["order_delivered_customer_date"]) or pd.isna(row["order_purchase_timestamp"]):
-            return None
-        return (row["order_delivered_customer_date"] - row["order_purchase_timestamp"]).days
-
-    fact["delivery_days"] = fact.apply(calc_delivery, axis=1)
-
-    # seller_handling_days (purchase -> carrier handoff): the SELLER-owned phase
-    def calc_seller_handling(row):
-        if pd.isna(row["order_delivered_carrier_date"]) or pd.isna(row["order_purchase_timestamp"]):
-            return None
-        return (row["order_delivered_carrier_date"] - row["order_purchase_timestamp"]).days
-
-    fact["seller_handling_days"] = fact.apply(calc_seller_handling, axis=1)
-
-    # payment_approval_days (purchase -> payment approval) and seller_prep_days
-    # (approval -> carrier handoff) split the seller phase so that
-    # payment_approval_days + seller_prep_days == seller_handling_days on every row
-    # (=> payment + prep + carrier == delivery_days). order_approved_at can be null;
-    # when it is, the whole seller phase is attributed to prep (payment = 0).
-    def calc_payment_approval(row):
-        if pd.isna(row["seller_handling_days"]):
-            return None
-        if pd.isna(row["order_approved_at"]) or pd.isna(row["order_purchase_timestamp"]):
-            return 0
-        d = (row["order_approved_at"] - row["order_purchase_timestamp"]).days
-        # clamp into [0, seller_handling_days] so both sub-phases stay non-negative
-        return max(0, min(d, int(row["seller_handling_days"])))
-
-    fact["payment_approval_days"] = fact.apply(calc_payment_approval, axis=1)
-
-    def calc_seller_prep(row):
-        if pd.isna(row["seller_handling_days"]) or pd.isna(row["payment_approval_days"]):
-            return None
-        return int(row["seller_handling_days"]) - int(row["payment_approval_days"])
-
-    fact["seller_prep_days"] = fact.apply(calc_seller_prep, axis=1)
-
-    # carrier_transit_days (carrier handoff -> customer): the CARRIER-owned phase.
-    # Defined as the REMAINDER of the authoritative (single-floored) total so that
-    # seller_handling_days + carrier_transit_days == delivery_days on EVERY row.
-    # Computing it independently as (delivered - handoff).days would floor a third
-    # time, and floor(a)+floor(b) <= floor(a+b): the two phases would then under-sum
-    # the total by 0 or 1 day per row (~0.48 days on average, ~48% of orders),
-    # which is exactly why the matrix avg and the stacked-bar total disagreed.
-    def calc_carrier_transit(row):
-        if pd.isna(row["delivery_days"]) or pd.isna(row["seller_handling_days"]):
-            return None
-        return row["delivery_days"] - row["seller_handling_days"]
-
-    fact["carrier_transit_days"] = fact.apply(calc_carrier_transit, axis=1)
-
-    # is_on_time (1/0/None)
-    def calc_on_time(row):
-        if pd.isna(row["order_delivered_customer_date"]) or pd.isna(row["order_estimated_delivery_date"]):
-            return None
-        return 1 if row["order_delivered_customer_date"] <= row["order_estimated_delivery_date"] else 0
-
-    fact["is_on_time"] = fact.apply(calc_on_time, axis=1)
-
-    # Build output tuples – drop rows missing mandatory FKs
-    required_cols = ["order_id", "order_item_id", "sk_date_purchase",
-                     "sk_customer", "sk_seller", "sk_product"]
-    fact_clean = fact.dropna(subset=required_cols)
-
-    rows = []
-    for _, r in fact_clean.iterrows():
-        rows.append(row_to_none((
-            r["order_id"],          # order_id (VARCHAR, natural business key)
-            int(r["order_item_id"]),
-            int(r["sk_date_purchase"]),
-            nan_to_none(r.get("sk_date_carrier")),
-            nan_to_none(r.get("sk_date_delivered")),
-            nan_to_none(r.get("sk_date_estimated_delivery")),
-            int(r["sk_customer"]),
-            int(r["sk_seller"]),
-            int(r["sk_product"]),
-            float(r["price"]),
-            float(r["freight_value"]),
-            float(r["revenue"]),
-            nan_to_none(r.get("gross_profit")),
-            nan_to_none(r.get("unit_cost")),
-            nan_to_none(r.get("delivery_days")),
-            nan_to_none(r.get("seller_handling_days")),
-            nan_to_none(r.get("payment_approval_days")),
-            nan_to_none(r.get("seller_prep_days")),
-            nan_to_none(r.get("carrier_transit_days")),
-            nan_to_none(r.get("is_on_time")),
-            nan_to_none(r.get("review_score")),
-        )))
-
-    return rows
-
-
-# ─────────────────────────────────────────────────────────────────────
-# STEP 6 – fact_daily_seller_category
-# ─────────────────────────────────────────────────────────────────────
-def build_fact_daily_seller_category(
-    fact_rows: list,
-    dim_seller_df: pd.DataFrame,
-    dim_product_df: pd.DataFrame,
-) -> tuple:
-    """
-    Aggregated from fact_order_item rows.
-    PK: (sk_date, sk_seller, sk_product_category)
-    sk_product_category is a sequential integer ID assigned per unique category string.
-    Returns (rows, category_map) where category_map is {category_str: sk_product_category}.
-    """
-    if not fact_rows:
-        return [], {}
-
-    cols = [
-        "order_id", "order_item_id", "sk_date_purchase", "sk_date_carrier",
-        "sk_date_delivered", "sk_date_estimated_delivery",
-        "sk_customer", "sk_seller", "sk_product",
-        "price", "freight_value", "revenue", "gross_profit", "unit_cost",
-        "delivery_days", "seller_handling_days", "payment_approval_days",
-        "seller_prep_days", "carrier_transit_days",
-        "is_on_time", "review_score",
-    ]
-    df = pd.DataFrame(fact_rows, columns=cols)
-
-    # Attach product_category via sk_product
-    prod_cat = dim_product_df[["sk_product", "product_category"]].copy()
-    df = df.merge(prod_cat, on="sk_product", how="left")
-    df["product_category"] = df["product_category"].fillna("Unknown")
-
-    # Build deterministic category → integer mapping (sorted alphabetically)
-    unique_cats = sorted(df["product_category"].unique())
-    category_map = {cat: idx + 1 for idx, cat in enumerate(unique_cats)}
-    df["sk_product_category"] = df["product_category"].map(category_map)
-
-    # Use purchase date as the date dimension for aggregation
-    grp = df.groupby(["sk_date_purchase", "sk_seller", "sk_product_category"])
-
-    agg = grp.agg(
-        orders_count=("order_id", pd.Series.nunique),
-        items_count=("order_item_id", "count"),
-        revenue_total=("revenue", "sum"),
-        freight_total=("freight_value", "sum"),
-        gross_profit_total=("gross_profit", "sum"),
-        on_time_deliveries=("is_on_time", lambda x: (x == 1).sum()),
-        delivered_items=("sk_date_delivered", lambda x: x.notna().sum()),
-        review_score_sum=("review_score", "sum"),
-        reviews_count=("review_score", "count"),
-    ).reset_index()
-
-    rows = []
-    for _, r in agg.iterrows():
-        rows.append(row_to_none((
-            int(r["sk_date_purchase"]),
-            int(r["sk_seller"]),
-            int(r["sk_product_category"]),
-            int(r["orders_count"]),
-            int(r["items_count"]),
-            round(float(r["revenue_total"]), 2),
-            round(float(r["freight_total"]), 2),
-            nan_to_none(r.get("gross_profit_total")),
-            int(r["on_time_deliveries"]),
-            int(r["delivered_items"]),
-            nan_to_none(int(r["review_score_sum"]) if not pd.isna(r["review_score_sum"]) else None),
-            int(r["reviews_count"]),
-        )))
-
-    return rows, category_map
-
-
-# ─────────────────────────────────────────────────────────────────────
-# MAIN
-# ─────────────────────────────────────────────────────────────────────
 def main():
-    print("=" * 60)
-    print("Olist DW ETL – loading CSVs")
-    print("=" * 60)
-    dfs = load_csvs()
+    print("=" * 62)
+    print("Olist DW ETL  -  ELT edition (COPY + set-based SQL, no pandas)")
+    print("=" * 62)
 
-    customers   = dfs["customers"]
-    orders      = dfs["orders"]
-    items       = dfs["items"]
-    products    = dfs["products"]
-    sellers     = dfs["sellers"]
-    reviews     = dfs["reviews"]
-    translation = dfs["translation"]
-
-    # ── Connect ───────────────────────────────────────────────────────
-    print("\nConnecting to PostgreSQL...")
     try:
-        conn = get_conn()
+        conn = psycopg2.connect(PG_DSN)
     except psycopg2.OperationalError as e:
         print(f"[ERROR] Cannot connect to DB: {e}")
         sys.exit(1)
-
+    conn.autocommit = False
     cur = conn.cursor()
-    cur.execute(f"SET search_path TO {DB_SCHEMA}")
 
-    # ── Truncate in reverse FK order ──────────────────────────────────
-    print("\nTruncating existing data (cascade)...")
-    for tbl in ["fact_daily_seller_category", "fact_order_item",
-                "dim_product", "dim_seller", "dim_customer", "dim_date"]:
-        truncate_table(cur, tbl)
-    conn.commit()
+    try:
+        build_staging(cur)
+        conn.commit()
+        truncate_dw(cur)
+        conn.commit()
+        run_transforms(cur, conn)
+        drop_staging(cur)
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        cur.close()
+        conn.close()
+        raise
 
-    # ── dim_date ──────────────────────────────────────────────────────
-    print("\n[1/6] Building dim_date...")
-    date_rows = build_dim_date(orders)
-    bulk_insert(cur, "dim_date",
-                ["sk_date", "date", "day", "month", "month_name",
-                 "quarter", "year", "day_of_week", "is_weekend"],
-                date_rows)
-    conn.commit()
-
-    # ── dim_customer ──────────────────────────────────────────────────
-    print("\n[2/6] Building dim_customer...")
-    dim_cust = build_dim_customer(customers, orders)
-    cust_rows = []
-    for _, r in dim_cust.iterrows():
-        cust_rows.append(row_to_none((
-            r["customer_unique_id"],
-            r["customer_city"],
-            r["customer_state"],
-            r["customer_region"],
-            int(r["customer_age"]) if not pd.isna(r["customer_age"]) else None,
-            r["customer_age_group"],
-            r["customer_gender"],
-            r["customer_signup_date"],
-            r["customer_segment"],
-        )))
-    bulk_insert(cur, "dim_customer",
-                ["customer_unique_id", "customer_city", "customer_state",
-                 "customer_region", "customer_age", "customer_age_group",
-                 "customer_gender", "customer_signup_date", "customer_segment"],
-                cust_rows)
-    conn.commit()
-
-    # Reload dim_customer with auto-generated sk_customer
-    cur.execute(f"SELECT sk_customer, customer_unique_id FROM {DB_SCHEMA}.dim_customer")
-    rows_sk = cur.fetchall()
-    dim_cust_sk = pd.DataFrame(rows_sk, columns=["sk_customer", "customer_unique_id"])
-
-    # ── dim_seller ────────────────────────────────────────────────────
-    print("\n[3/6] Building dim_seller...")
-    dim_sell = build_dim_seller(sellers, items, products, translation)
-    sell_rows = []
-    for _, r in dim_sell.iterrows():
-        sell_rows.append(row_to_none((
-            r["seller_id"],
-            r["seller_city"],
-            r["seller_state"],
-            r["seller_region"],
-            r["seller_main_category"],
-            r["seller_size_category"],
-            r["seller_tier"],
-            r["seller_join_date"],
-            r["seller_plan"],
-            r["subscription_fee_monthly"],
-            r["commission_rate"],
-            r["payment_rate"],
-            r["active_months"],
-            r["subscription_revenue_total"],
-        )))
-    bulk_insert(cur, "dim_seller",
-                ["seller_id", "seller_city", "seller_state", "seller_region",
-                 "seller_main_category", "seller_size_category",
-                 "seller_tier", "seller_join_date",
-                 "seller_plan", "subscription_fee_monthly", "commission_rate",
-                 "payment_rate", "active_months", "subscription_revenue_total"],
-                sell_rows)
-    conn.commit()
-
-    cur.execute(f"SELECT sk_seller, seller_id FROM {DB_SCHEMA}.dim_seller")
-    dim_sell_sk = pd.DataFrame(cur.fetchall(), columns=["sk_seller", "seller_id"])
-
-    # ── dim_product ───────────────────────────────────────────────────
-    print("\n[4/6] Building dim_product...")
-    dim_prod = build_dim_product(products, items, translation)
-    prod_rows = []
-    for _, r in dim_prod.iterrows():
-        prod_rows.append(row_to_none((
-            r["product_id"],
-            r["product_category"],
-            r["product_category_group"],
-            nan_to_none(r["list_price"]),
-            r["price_band"],
-            nan_to_none(r["price_band_rank"]),
-            nan_to_none(r["unit_cost"]),
-            bool(r["is_premium"]) if not pd.isna(r["is_premium"]) else None,
-        )))
-    bulk_insert(cur, "dim_product",
-                ["product_id", "product_category", "product_category_group",
-                 "list_price", "price_band", "price_band_rank", "unit_cost", "is_premium"],
-                prod_rows)
-    conn.commit()
-
-    cur.execute(f"SELECT sk_product, product_id, unit_cost, product_category FROM {DB_SCHEMA}.dim_product")
-    dim_prod_sk = pd.DataFrame(cur.fetchall(), columns=["sk_product", "product_id", "unit_cost", "product_category"])
-    dim_prod_sk["unit_cost"] = dim_prod_sk["unit_cost"].astype(float)
-
-    # ── fact_order_item ───────────────────────────────────────────────
-    print("\n[5/6] Building fact_order_item...")
-    fact_rows = build_fact_order_item(
-        orders, items, customers, reviews,
-        dim_cust_sk, dim_sell_sk, dim_prod_sk,
-    )
-    bulk_insert(cur, "fact_order_item",
-                ["order_id", "order_item_id", "sk_date_purchase", "sk_date_carrier",
-                 "sk_date_delivered", "sk_date_estimated_delivery",
-                 "sk_customer", "sk_seller", "sk_product",
-                 "price", "freight_value", "revenue", "gross_profit", "unit_cost",
-                 "delivery_days", "seller_handling_days", "payment_approval_days",
-                 "seller_prep_days", "carrier_transit_days",
-                 "is_on_time", "review_score"],
-                fact_rows)
-    conn.commit()
-
-    # ── fact_daily_seller_category ────────────────────────────────────
-    print("\n[6/6] Building fact_daily_seller_category...")
-    daily_rows, category_map = build_fact_daily_seller_category(fact_rows, dim_sell_sk, dim_prod_sk)
-    print(f"  [INFO] sk_product_category map: {len(category_map)} unique categories")
-    bulk_insert(cur, "fact_daily_seller_category",
-                ["sk_date", "sk_seller", "sk_product_category",
-                 "orders_count", "items_count", "revenue_total", "freight_total",
-                 "gross_profit_total", "on_time_deliveries", "delivered_items",
-                 "review_score_sum", "reviews_count"],
-                daily_rows)
-    conn.commit()
-
-    # ── Summary ───────────────────────────────────────────────────────
-    print("\n" + "=" * 60)
-    print("ETL complete. Row counts:")
-    for tbl in ["dim_date", "dim_customer", "dim_seller", "dim_product",
-                "fact_order_item", "fact_daily_seller_category"]:
-        cur.execute(f"SELECT COUNT(*) FROM {DB_SCHEMA}.{tbl}")
-        cnt = cur.fetchone()[0]
-        print(f"  {tbl:<35} {cnt:>10,}")
-
+    print("\n" + "=" * 62)
+    print("ETL complete. Final warehouse row counts:")
+    for t in DW_TABLES:
+        cur.execute(f"SELECT count(*) FROM {DW_SCHEMA}.{t}")
+        print(f"  {t:<35} {cur.fetchone()[0]:>10,}")
     cur.close()
     conn.close()
-    print("=" * 60)
+    print("=" * 62)
 
 
 if __name__ == "__main__":
